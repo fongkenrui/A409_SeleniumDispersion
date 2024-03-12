@@ -1,0 +1,40 @@
+# conda environment description file for repo refactoring experiments for
+# 2024 edition of EOAS 511/ATSC 409 Numeric course
+#
+# Create a conda environment for working on course notebooks and documentation,
+# and refactoring experiments with:
+#
+#   $ cd A409_SeleniumDispersion
+#   $ conda env create -f envs/environment.yaml
+#   $ conda activate numeric_2024_project
+
+name: numeric_2024_project
+
+channels:
+  - conda-forge
+  - nodefaults
+
+dependencies:
+  # The basics
+  - python=3.12
+  - pip
+
+  # To run Jupyter notebooks
+  - jupyterlab
+
+  # For calculations and visualization
+  - pandas
+  - scipy
+  - matplotlib
+
+  # xarray and related dependencies
+  - xarray
+  - packaging
+  - netCDF4
+
+  # For repo QA
+  - pre-commit
+
+  - pip:
+    # Website theme (aka Sandstone)
+    - mozilla_sphinx_theme
