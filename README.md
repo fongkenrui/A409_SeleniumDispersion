@@ -14,3 +14,4 @@ Run the following:
   `$ conda env create -f envs/environment.yaml`
   
   `$ conda activate numeric_2024_project`
+
