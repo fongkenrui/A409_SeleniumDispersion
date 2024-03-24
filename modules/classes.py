@@ -20,7 +20,7 @@ class XYfunc(object):
         """
         Partial derivative of function with respect to x
         """
-        raise Error("Method needs to be overriden in a child class!")
+        raise Error("Method needs to be overriden in a child class!") 
 
     def partial_y(self):
         """
@@ -105,7 +105,7 @@ class Quantity(object):
 
         self.dx = (xrange[1] - xrange[0])/(n_grid - 1)
         self.dy = (yrange[1] - yrange[0])/(n_grid - 1)
-        self.dt = (trange[1] - trange[0])/(n_time = 1)
+        self.dt = (trange[1] - trange[0])/(n_time - 1)
 
         self.prev = np.empty((n_grid, n_grid))
         self.now = np.empty((n_grid, n_grid))
