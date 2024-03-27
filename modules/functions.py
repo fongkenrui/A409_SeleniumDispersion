@@ -1,4 +1,4 @@
-## Module for storing derivative functions and boundary conditions
+## Module for storing functions defining derivatives, initial conditions and boundary conditions
 
 def centred_diff_2D(C, diffusion):
     """Centred difference scheme for 2-D heat equation with varying diffusion coefficient
@@ -31,5 +31,27 @@ def neumann(C): # In hindsight, this kind of neumann conditions should be more a
         C (Quantity): A Quantity object representing the concentration C(x, y, t)
     """
     return
+
+
+def set_initial_condition_2D(C, initial_condition):
+    """Generically sets the initial condition at C.now for a 2D spatial grid. For different time-stepping schemes custom initial_condition
+    functions may need to be defined.
+
+    Args:
+        C (_type_): _description_
+    """
+    # Array broadcasting rules checks that array sizes are identical
+    C.now[:,:] = initial_condition[:,:] 
+    C.store_timestep(0)
+
+def set_initial_condition_1D(C, initial_condition):
+    """Generically sets the initial condition at C.now for a 1D spatial grid. For different time-stepping schemes custom initial_condition
+    functions may need to be defined.
+
+    Args:
+        C (_type_): _description_
+    """
+    C.now[:] = initial_condition[:]
+    C.store_timestep(0)
 
 
