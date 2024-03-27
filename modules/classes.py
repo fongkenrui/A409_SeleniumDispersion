@@ -161,6 +161,16 @@ class Quantity2D(object):
         self.next = np.empty((n_grid, n_grid))
 
         self.store = np.empty((n_grid, n_grid, n_time))
+
+    @property
+    def value(self):
+        """Property-like variable to access stored array values without
+        risk of modifying the original copy.
+
+        Returns:
+            _type_: _description_
+        """
+        return copy.copy(self.store)
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
@@ -229,6 +239,16 @@ class Quantity1D(object):
         self.next = np.empty((n_grid, ))
 
         self.store = np.empty((n_grid, n_time))
+
+    @property
+    def value(self):
+        """Property-like variable to access stored array values without
+        risk of modifying the original copy.
+
+        Returns:
+            _type_: _description_
+        """
+        return copy.copy(self.store)
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
