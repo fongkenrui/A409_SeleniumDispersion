@@ -42,7 +42,7 @@ def set_initial_condition_2D(C, initial_condition):
     """
     # Array broadcasting rules checks that array sizes are identical
     C.now[:,:] = initial_condition[:,:] 
-    C.store_timestep(0)
+    C.store_timestep(0, "now")
 
 def set_initial_condition_1D(C, initial_condition):
     """Generically sets the initial condition at C.now for a 1D spatial grid. For different time-stepping schemes custom initial_condition
@@ -52,6 +52,6 @@ def set_initial_condition_1D(C, initial_condition):
         C (_type_): _description_
     """
     C.now[:] = initial_condition[:]
-    C.store_timestep(0)
+    C.store_timestep(0, "now")
 
 
