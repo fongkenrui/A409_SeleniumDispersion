@@ -4,8 +4,8 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 import copy
-from classes import Quantity1D, Quantity2D
-from functions import set_initial_condition_1D
+from .classes import Quantity1D, Quantity2D
+from .functions import set_initial_condition_1D
 from scipy.linalg import solve_banded
 from scipy.linalg.lapack import cgtsv 
 
