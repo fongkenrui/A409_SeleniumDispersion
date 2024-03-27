@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
+
 class XYfunc(object):
     """Root class for defining coefficient functions f(x, y) and their gradients.
     """
@@ -35,7 +36,7 @@ class XYfunc(object):
         return
 
 
-class Interpolate(xyfunc):
+class Interpolate(XYfunc):
     """Class for holding a 2-D spline function interpolated from an array 
     of values, as well its gradient functions.
     """
@@ -73,8 +74,47 @@ class Interpolate(xyfunc):
         """
         return
 
+class Analytic(XYfunc):
+    """Class for defining an analytic coefficient function f(x, y).
+
+    Args:
+        xyfunc (_type_): _description_
+    """
+
+    def __init__(self, func, dx=0.01, dy=0.01):
+        self.func = func
+        self.partial_x = None
+        self.partial_y = None
+        # Parameters for finite difference approx of gradients
+        self.dx = dx
+        self.dy = dy
+
+    def set_partial_x(self, func):
+        self.partial_x = func
+
+    def set_partial_y(self, func):
+        self.partial_y = func
+
+    def partial_x(self):
+        if self.partial_x:
+            return self.partial_x
+        else:
+            # Use a finite difference approximation to construct a function
+            dx = self.dx
+            partial_x = lambda x, y: (self.func(x + dx, y) - self.func(x - dx, y))/(2*dx)
+            return partial_x
+
+    def partial_y(self):
+        if self.partial_y:
+            return self.partial_y
+        else:
+            # Use a finite difference approximation to construct a function
+            dy = self.dy
+            partial_y = lambda x, y: (self.func(x, y + dy) - self.func(x, y - dy))/(2*dy)
+            return partial_y
+ 
 # More or less the same as Lab 7 Quantity object
-class Quantity(object):
+class Quantity2D(object):
     """Object to hold arrays and attributes for the function to be solved f(x, y, t).
 
     Args:
@@ -129,6 +169,74 @@ class Quantity(object):
         # former lets us change the name of the attribute to operate
         # on at runtime.
         self.store[:, :, time_step] = self.__getattribute__(attr)
+
+    def shift(self):
+        """Copy the .now values to .prev, and the .next values to .new.
+
+        This reduces the storage requirements of the model to 3 n_grid
+        long arrays for each quantity, which becomes important as the
+        domain size and model complexity increase.  It is possible to
+        reduce the storage required to 2 arrays per quantity.
+        """
+        # Note the use of the copy() method from the copy module in
+        # the standard library here to get a copy of the array, not a
+        # copy of the reference to it.  This is an important and
+        # subtle aspect of the Python data model.
+        self.prev = copy.copy(self.now)
+        self.now = copy.copy(self.next)
+
+
+class Quantity1D(object):
+    """Object to hold arrays and attributes for the function to be solved f(x, t).
+
+    Args:
+        object (_type_): _description_
+    """
+
+    def __init__(self, 
+        n_grid, 
+        n_time,
+        xrange,
+        trange,
+        ):
+        """Initialize with the following parameters:
+
+        Args:
+            n_grid (_type_): _description_
+            n_time (_type_): _description_
+            xrange (tup): Tuple defining the x-domain interval [x0, xn]
+            trange (tup): Tuple defining the time interval [t0, tn]
+        """
+        self.n_grid = n_grid
+        self.n_time = n_time
+        self.xrange = xrange
+        self.trange = trange
+
+        self.dx = (xrange[1] - xrange[0])/(n_grid - 1)
+        self.dt = (trange[1] - trange[0])/(n_time - 1)
+
+        self.prev = np.empty((n_grid, ))
+        self.now = np.empty((n_grid, ))
+        self.next = np.empty((n_grid, ))
+
+        self.store = np.empty((n_grid, n_time))
+    
+    def store_timestep(self, time_step, attr='next'):
+        """Copy the values for the specified time step to the storage
+        array.
+
+        The `attr` argument is the name of the attribute array (prev,
+        now, or next) that we are going to store.  Assigning the value
+        'next' to it in the function def statement makes that the
+        default, chosen because that is the most common use (in the
+        time step loop).
+        """
+        # The __getattribute__ method let us access the attribute
+        # using its name in string form;
+        # i.e. x.__getattribute__('foo') is the same as x.foo, but the
+        # former lets us change the name of the attribute to operate
+        # on at runtime.
+        self.store[:, time_step] = self.__getattribute__(attr)
 
     def shift(self):
         """Copy the .now values to .prev, and the .next values to .new.
