@@ -15,7 +15,14 @@ class XYfunc(object):
         To be overridden in a child class 
         """
         self.func = None
+        self.partial_x = None
+        self.partial_y = None
         raise Error("Method needs to be overriden in a child class!")
+
+    def __call__(self, **args):
+        """Call the function stored in the class. Inherited by all child classes.
+        """
+        return self.func(**args)
 
     def partial_x(self):
         """
@@ -55,6 +62,8 @@ class Interpolate(XYfunc):
         # Useful for defining the relevant domain for visualizing the function 
         self.xcoords = xcoords
         self.ycoords = ycoords
+        self.partial_x = None
+        self.partial_y = None
         # Gradient of spline function should be generated at initialization
         return
 

@@ -16,7 +16,24 @@ def generate_left_matrix(C, diffusion):
     """
     dx = C.dx 
     dt = C.dt
-    return
+    n_grid = C.n_grid
+    # Define coefficient clusters
+    def D1(x):
+        partial_x = diffusion.partial_x()
+        return - (diffusion(x, 0) * dt)/(2 * dx**2) - (partial_x(x, 0) * dt)/(4 * dx)
+    
+    def D2(x):
+        return (2*diffusion(x, 0))/(2 * dx**2) + 1
+
+    def D3(x):
+        partial_x = diffusion.partial_x()
+        return - (diffusion(x, 0) * dt)/(2 * dx**2) + (partial_x(x, 0) * dt)/(4 * dx)
+
+    matrix = np.zeros((n_grid, n_grid))
+
+    for i in range(1, n_grid-1):
+        x = i*dx
+        matrix[i-1:i+2] = np.array([D1])
 
 def generate_right_matrix(C, diffusion):
     """Generates the matrix B which operates on C_i in the matrix equation $A{C_i+1} = B{C_i}$
