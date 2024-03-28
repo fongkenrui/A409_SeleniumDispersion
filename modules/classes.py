@@ -171,6 +171,7 @@ class Quantity2D(object):
             _type_: _description_
         """
         return copy.copy(self.store)
+
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
@@ -252,6 +253,7 @@ class Quantity1D(object):
             _type_: _description_
         """
         return copy.copy(self.store)
+
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
