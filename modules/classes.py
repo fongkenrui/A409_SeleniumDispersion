@@ -19,10 +19,10 @@ class XYfunc(object):
         self.partial_y = None
         raise Error("Method needs to be overriden in a child class!")
 
-    def __call__(self, **args):
+    def __call__(self, *args):
         """Call the function stored in the class. Inherited by all child classes.
         """
-        return self.func(**args)
+        return self.func(*args)
 
     def partial_x(self):
         """
@@ -234,9 +234,12 @@ class Quantity1D(object):
         self.dx = (xrange[1] - xrange[0])/(n_grid - 1)
         self.dt = (trange[1] - trange[0])/(n_time - 1)
 
-        self.prev = np.empty((n_grid, ))
-        self.now = np.empty((n_grid, ))
-        self.next = np.empty((n_grid, ))
+        self.xcoords = np.linspace(xrange[0], xrange[1], n_grid)
+        self.tcoords = np.linspace(trange[0], trange[1], n_time)
+
+        self.prev = np.empty(n_grid)
+        self.now = np.empty(n_grid)
+        self.next = np.empty(n_grid)
 
         self.store = np.empty((n_grid, n_time))
 
