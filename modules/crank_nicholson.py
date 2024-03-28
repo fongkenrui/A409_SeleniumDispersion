@@ -143,7 +143,9 @@ def crank_nicholson_1D(
     C, # Quantity1D object
     diffusion,
     initial_condition, # Vector of same shape as C sliced at a specific timestep
-    sources = 0, # Array of sources and sinks
+    sources = [], # Source/Sink array for constant sources/sinks
+    sinks = [], # Sinks need to be modeled differently; linear sink where draw rate = k/2 (C(t+dt) + C(t))
+    # Give up for now, sinks are a massive pain to model
 ):
     """Main routine for running the 1-D Crank-Nicholson method.
 
@@ -165,7 +167,10 @@ def crank_nicholson_1D(
 
     for timestep in range(1, n_time):
         C_i = C.now
-        b = B@C_i 
+        b = B@C_i
+        # Add source term if applicable
+        if len(sources) > 0:
+            b = b + sources
         print(timestep, "C_i:", C_i)
         # numpy solve_banded implements cgtsv if a tridiagonal matrix is given
         C.next = solve_banded((1, 1), ab, b)
