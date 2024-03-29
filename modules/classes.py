@@ -7,7 +7,8 @@ import copy
 
 
 class XYfunc(object):
-    """Root class for defining coefficient functions f(x, y) and their gradients.
+    """Root class for defining coefficient functions f(x, y) and their gradients. The stored functions
+    need to be vectorized.
     """
 
     def __init__(self):
@@ -84,7 +85,8 @@ class Interpolate(XYfunc):
         return
 
 class Analytic(XYfunc):
-    """Class for defining an analytic coefficient function f(x, y).
+    """Class for defining an analytic coefficient function f(x, y). The stored
+    functions need to be vectorized.
 
     Args:
         xyfunc (_type_): _description_
@@ -155,6 +157,10 @@ class Quantity2D(object):
         self.dx = (xrange[1] - xrange[0])/(n_grid - 1)
         self.dy = (yrange[1] - yrange[0])/(n_grid - 1)
         self.dt = (trange[1] - trange[0])/(n_time - 1)
+
+        self.xcoords = np.linspace(xrange[0], xrange[1], n_grid)
+        self.ycoords = np.linspace(yrange[0], yrange[1], n_grid)
+        self.tcoords = np.linspace(trange[0], trange[1], n_time)
 
         self.prev = np.empty((n_grid, n_grid))
         self.now = np.empty((n_grid, n_grid))
