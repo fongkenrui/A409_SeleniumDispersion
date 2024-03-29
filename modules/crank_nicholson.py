@@ -161,9 +161,6 @@ def crank_nicholson_1D(
     ab = generate_diagonal_banded_form(C, diffusion)
     A = generate_left_matrix(C, diffusion)
     B = generate_right_matrix(C, diffusion)
-    print(A)
-    print(ab)
-    print(B)
 
     for timestep in range(1, n_time):
         C_i = C.now
@@ -171,12 +168,8 @@ def crank_nicholson_1D(
         # Add source term if applicable
         if len(sources) > 0:
             b = b + sources
-        print(timestep, "C_i:", C_i)
         # numpy solve_banded implements cgtsv if a tridiagonal matrix is given
         C.next = solve_banded((1, 1), ab, b)
-        print(timestep, 'b:', b )
-        print('compute:', A@C.next)
-        #C.next = cgtsv(dl=l, d=d, du=u, b=b)
         C.store_timestep(timestep)
         C.shift()
 
