@@ -15,7 +15,14 @@ class XYfunc(object):
         To be overridden in a child class 
         """
         self.func = None
+        self.partial_x = None
+        self.partial_y = None
         raise Error("Method needs to be overriden in a child class!")
+
+    def __call__(self, *args):
+        """Call the function stored in the class. Inherited by all child classes.
+        """
+        return self.func(*args)
 
     def partial_x(self):
         """
@@ -55,6 +62,8 @@ class Interpolate(XYfunc):
         # Useful for defining the relevant domain for visualizing the function 
         self.xcoords = xcoords
         self.ycoords = ycoords
+        self.partial_x = None
+        self.partial_y = None
         # Gradient of spline function should be generated at initialization
         return
 
@@ -152,6 +161,17 @@ class Quantity2D(object):
         self.next = np.empty((n_grid, n_grid))
 
         self.store = np.empty((n_grid, n_grid, n_time))
+
+    @property
+    def value(self):
+        """Property-like variable to access stored array values without
+        risk of modifying the original copy.
+
+        Returns:
+            _type_: _description_
+        """
+        return copy.copy(self.store)
+
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
@@ -215,11 +235,25 @@ class Quantity1D(object):
         self.dx = (xrange[1] - xrange[0])/(n_grid - 1)
         self.dt = (trange[1] - trange[0])/(n_time - 1)
 
-        self.prev = np.empty((n_grid, ))
-        self.now = np.empty((n_grid, ))
-        self.next = np.empty((n_grid, ))
+        self.xcoords = np.linspace(xrange[0], xrange[1], n_grid)
+        self.tcoords = np.linspace(trange[0], trange[1], n_time)
+
+        self.prev = np.empty(n_grid)
+        self.now = np.empty(n_grid)
+        self.next = np.empty(n_grid)
 
         self.store = np.empty((n_grid, n_time))
+
+    @property
+    def value(self):
+        """Property-like variable to access stored array values without
+        risk of modifying the original copy.
+
+        Returns:
+            _type_: _description_
+        """
+        return copy.copy(self.store)
+
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
