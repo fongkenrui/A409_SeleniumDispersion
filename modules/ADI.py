@@ -192,19 +192,67 @@ def generate_explicit_comp_x(C, diffusion, j):
         ndarray: 1-D ndarray
     """
     x_coords = C.xcoords
+    n_grid = C.n_grid
     y = C.ycoords[j]
     dy = C.dy
     dt = C.dt/2
     diff_vec = diffusion(x_coords, y) # diffusion needs to be a vectorized function
     grad_diff_vec = diffusion.partial_y(x_coords, y)
-    C_jp1 = C.now[:, j+1] 
-    C_j = C.now[:, j]
-    C_jm1 = C.now[:, j-1]
-    term1 = (dt/dy**2) * (diff_vec @ (C_jp1 - 2*C_j + C_jm1))
-    term2 = dt/(2*dy) * (grad_diff_vec @ (C_jp1 - C_jm1))
-    return term1 + term2
 
-def generate_explicit_comp_y(C, diffusion, i):
+    # Seperately handle boundary conditions at j=0 and j=ngrid with forward/backward euler
+    if j == 0:
+        C_jp1 = C.now[:, j+2] 
+        C_j = C.now[:, j+1]
+        C_jm1 = C.now[:, j]
+
+        if type(diff_vec) != np.ndarray:
+            term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
+        else:
+            term1 = (dt/dy**2) * (diff_vec @ (C_jp1 - 2*C_j + C_jm1))
+
+        if type(grad_diff_vec) != np.ndarray:
+            term2 = dt/(dy) * (grad_diff_vec * (C_j - C_jm1))
+        else:
+            term2 = dt/(dy) * (grad_diff_vec @ (C_j - C_jm1))
+        return term1 + term2
+        
+    elif j == (n_grid-1):
+        C_jp1 = C.now[:, j] 
+        C_j = C.now[:, j-1]
+        C_jm1 = C.now[:, j-2]
+
+        # Routine to take care of scalars
+
+        if type(diff_vec) != np.ndarray:
+            term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
+        else:
+            term1 = (dt/dy**2) * (diff_vec @ (C_jp1 - 2*C_j + C_jm1))
+
+        if type(grad_diff_vec) != np.ndarray:
+            term2 = dt/(dy) * (grad_diff_vec * (C_jp1 - C_j))
+        else:
+            term2 = dt/(dy) * (grad_diff_vec @ (C_jp1 - C_j))
+        return term1 + term2
+    
+    else:
+        C_jp1 = C.now[:, j+1] 
+        C_j = C.now[:, j]
+        C_jm1 = C.now[:, j-1]
+
+        # Routine to take care of scalars
+
+        if type(diff_vec) != np.ndarray:
+            term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
+        else:
+            term1 = (dt/dy**2) * (diff_vec @ (C_jp1 - 2*C_j + C_jm1))
+
+        if type(grad_diff_vec) != np.ndarray:
+            term2 = dt/(2*dy) * (grad_diff_vec * (C_jp1 - C_jm1))
+        else:
+            term2 = dt/(2*dy) * (grad_diff_vec @ (C_jp1 - C_jm1))
+        return term1 + term2
+
+def generate_explicit_comp_y(C, diffusion, i): #TODO: Boundary conditions need to be handled here for the explicit direction as well
     """_summary_
 
     Args:
@@ -216,17 +264,63 @@ def generate_explicit_comp_y(C, diffusion, i):
         ndarray: 1-D ndarray
     """
     y_coords = C.ycoords
+    n_grid = C.n_grid
     x = C.xcoords[i]
     dx = C.dx
     dt = C.dt/2
     diff_vec = diffusion(x, y_coords) # diffusion needs to be a vectorized function
     grad_diff_vec = diffusion.partial_y(x, y_coords)
-    C_ip1 = C.now[i+1,:] 
-    C_i = C.now[i,:]
-    C_im1 = C.now[i-1,:]
-    term1 = (dt/dx**2) * (diff_vec @ (C_ip1 - 2*C_i + C_im1))
-    term2 = dt/(2*dx) * (grad_diff_vec @ (C_ip1 - C_im1))
-    return term1 + term2
+
+    # Seperately handle boundary conditions at j=0 and j=ngrid with forward/backward euler
+    if i == 0:
+        C_ip1 = C.now[i+2,:] 
+        C_i = C.now[i+1,:]
+        C_im1 = C.now[i,:]
+
+        if type(diff_vec) != np.ndarray:
+            term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
+        else:
+            term1 = (dt/dx**2) * (diff_vec @ (C_ip1 - 2*C_i + C_im1))
+
+        if type(grad_diff_vec) != np.ndarray:
+            term2 = dt/(dx) * (grad_diff_vec * (C_i - C_im1))
+        else:
+            term2 = dt/(dx) * (grad_diff_vec @ (C_i - C_im1))
+        return term1 + term2
+        
+    elif i == (n_grid-1):
+        C_ip1 = C.now[i,:] 
+        C_i = C.now[i-1,:]
+        C_im1 = C.now[i-2,:]
+
+        # Routine to take care of scalars
+
+        if type(diff_vec) != np.ndarray:
+            term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
+        else:
+            term1 = (dt/dx**2) * (diff_vec @ (C_ip1 - 2*C_i + C_im1))
+
+        if type(grad_diff_vec) != np.ndarray:
+            term2 = dt/(dx) * (grad_diff_vec * (C_ip1 - C_i))
+        else:
+            term2 = dt/(dx) * (grad_diff_vec @ (C_ip1 - C_i))
+        return term1 + term2
+
+    else:
+        C_ip1 = C.now[i+1,:] 
+        C_i = C.now[i,:]
+        C_im1 = C.now[i-1,:]
+        #Routine to take care of scalars
+        if type(diff_vec) != np.ndarray:
+            term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
+        else:
+            term1 = (dt/dx**2) * (diff_vec @ (C_ip1 - 2*C_i + C_im1))
+        
+        if type(grad_diff_vec) != np.ndarray:
+            term2 = dt/(2*dx) * (grad_diff_vec * (C_ip1 - C_im1))
+        else:
+            term2 = dt/(2*dx) * (grad_diff_vec @ (C_ip1 - C_im1))
+        return term1 + term2
 
 
 def ADI(
@@ -274,7 +368,7 @@ def ADI(
             ab = generate_left_matrix_y(C, diffusion, x)
             B = generate_right_matrix_y(C, diffusion, x)
             # Explicit component
-            d = generate_explicit_comp_x(C, diffusion, i)
+            d = generate_explicit_comp_y(C, diffusion, i)
             b = B@C_j + d
             C_next = solve_banded((1,1), ab, b)
             C.next[i, :] = C_next
