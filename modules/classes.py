@@ -4,10 +4,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+from scipy.interpolate import RectBivariateSpline
 
 
 class XYfunc(object):
-    """Root class for defining coefficient functions f(x, y) and their gradients.
+    """Root class for defining coefficient functions f(x, y) and their gradients. The stored functions
+    need to be vectorized.
     """
 
     def __init__(self):
@@ -58,13 +60,15 @@ class Interpolate(XYfunc):
         """
 
         # Attribute storing the actual spline function, needed for plot_2D parent method
-        self.func = None
+        spline = RectBivariateSpline(xcoords, ycoords, array)
+        self.func = lambda x, y: spline(x, y, grid=False)
         # Useful for defining the relevant domain for visualizing the function 
         self.xcoords = xcoords
         self.ycoords = ycoords
-        self.partial_x = None
-        self.partial_y = None
+        self.partial_x = lambda x, y: spline.partial_derivative(dx=1, dy=0)(x, y, grid = False)
+        self.partial_y = lambda x, y: spline.partial_derivative(dx=0, dy=1)(x, y, grid = False)
         # Gradient of spline function should be generated at initialization
+
         return
 
     def partial_x(self):
@@ -81,10 +85,15 @@ class Interpolate(XYfunc):
         """
         Convenience function to visualize the function on a 2-D plot
         """
-        return
+        X, Y = np.meshgrid(self.xcoords, self.ycoords)
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+        ax.plot_surface(X, Y, self.func(X, Y))
+        return fig, ax
 
 class Analytic(XYfunc):
-    """Class for defining an analytic coefficient function f(x, y).
+    """Class for defining an analytic coefficient function f(x, y). The stored
+    functions need to be vectorized.
 
     Args:
         xyfunc (_type_): _description_
@@ -156,6 +165,9 @@ class Quantity2D(object):
         self.dy = (yrange[1] - yrange[0])/(n_grid - 1)
         self.dt = (trange[1] - trange[0])/(n_time - 1)
 
+        self.xcoords = np.linspace(xrange[0], xrange[1], n_grid)
+        self.ycoords = np.linspace(yrange[0], yrange[1], n_grid)
+        self.tcoords = np.linspace(trange[0], trange[1], n_time)
         self.prev = np.empty((n_grid, n_grid))
         self.now = np.empty((n_grid, n_grid))
         self.next = np.empty((n_grid, n_grid))
@@ -171,7 +183,6 @@ class Quantity2D(object):
             _type_: _description_
         """
         return copy.copy(self.store)
-
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
@@ -253,7 +264,6 @@ class Quantity1D(object):
             _type_: _description_
         """
         return copy.copy(self.store)
-
     
     def store_timestep(self, time_step, attr='next'):
         """Copy the values for the specified time step to the storage
