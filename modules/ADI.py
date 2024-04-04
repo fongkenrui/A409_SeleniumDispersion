@@ -198,6 +198,8 @@ def generate_explicit_comp_x(C, diffusion, j):
     dt = C.dt/2
     diff_vec = diffusion(x_coords, y) # diffusion needs to be a vectorized function
     grad_diff_vec = diffusion.partial_y(x_coords, y)
+    print("diff_vec", diff_vec)
+    print("grad_diff_vec", grad_diff_vec) # These are notthe problem
 
     # Seperately handle boundary conditions at j=0 and j=ngrid with forward/backward euler
     if j == 0:
@@ -239,6 +241,7 @@ def generate_explicit_comp_x(C, diffusion, j):
         C_j = C.now[:, j]
         C_jm1 = C.now[:, j-1]
 
+        print("C_j", C_j)
         # Routine to take care of scalars
 
         if type(diff_vec) != np.ndarray:
@@ -250,6 +253,7 @@ def generate_explicit_comp_x(C, diffusion, j):
             term2 = dt/(2*dy) * (grad_diff_vec * (C_jp1 - C_jm1))
         else:
             term2 = dt/(2*dy) * (grad_diff_vec @ (C_jp1 - C_jm1))
+
         return term1 + term2
 
 def generate_explicit_comp_y(C, diffusion, i): #TODO: Boundary conditions need to be handled here for the explicit direction as well

@@ -20,6 +20,8 @@ def calculate_boundary_flux(the_ds):
     
     cumflux = np.zeros(the_ds.n_time)
     D = the_ds.attrs['diffusion_coefficient']
+    if type(D) == float:
+        D = D*np.ones_like(the_ds.isel(t=0))
     dx = the_ds.attrs['dx']
     dy = the_ds.attrs['dy']
     dt = the_ds.attrs['dt']
