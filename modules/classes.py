@@ -4,6 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+from scipy.interpolate import RectBivariateSpline
 
 
 class XYfunc(object):
@@ -59,13 +60,15 @@ class Interpolate(XYfunc):
         """
 
         # Attribute storing the actual spline function, needed for plot_2D parent method
-        self.func = None
+        spline = RectBivariateSpline(xcoords, ycoords, array)
+        self.func = lambda x, y: spline(x, y, grid=False)
         # Useful for defining the relevant domain for visualizing the function 
         self.xcoords = xcoords
         self.ycoords = ycoords
-        self.partial_x = None
-        self.partial_y = None
+        self.partial_x = lambda x, y: spline.partial_derivative(dx=1, dy=0)(x, y, grid = False)
+        self.partial_y = lambda x, y: spline.partial_derivative(dx=0, dy=1)(x, y, grid = False)
         # Gradient of spline function should be generated at initialization
+
         return
 
     def partial_x(self):
@@ -82,7 +85,11 @@ class Interpolate(XYfunc):
         """
         Convenience function to visualize the function on a 2-D plot
         """
-        return
+        X, Y = np.meshgrid(self.xcoords, self.ycoords)
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+        ax.plot_surface(X, Y, self.func(X, Y))
+        return fig, ax
 
 class Analytic(XYfunc):
     """Class for defining an analytic coefficient function f(x, y). The stored
