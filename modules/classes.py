@@ -161,7 +161,6 @@ class Quantity2D(object):
         self.xcoords = np.linspace(xrange[0], xrange[1], n_grid)
         self.ycoords = np.linspace(yrange[0], yrange[1], n_grid)
         self.tcoords = np.linspace(trange[0], trange[1], n_time)
-
         self.prev = np.empty((n_grid, n_grid))
         self.now = np.empty((n_grid, n_grid))
         self.next = np.empty((n_grid, n_grid))
