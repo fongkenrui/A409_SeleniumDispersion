@@ -118,21 +118,21 @@ def generate_right_matrix_x(C, diffusion, y): #TODO: Modify
     n_grid = C.n_grid
     xcoords = C.xcoords
     # Define coefficient clusters
-    def D1(x):
-        return (diffusion(x, 0) * dt)/(2 * dx**2) - (diffusion.partial_x(x, 0) * dt)/(4 * dx)
+    def D1(x, y):
+        return (diffusion(x, y) * dt)/(2 * dx**2) - (diffusion.partial_x(x, y) * dt)/(4 * dx)
     
-    def D2(x):
-        return -(diffusion(x, 0) * dt)/(dx**2) + 1
+    def D2(x, y):
+        return -(diffusion(x, y) * dt)/(dx**2) + 1
 
-    def D3(x):
-        return (diffusion(x, 0) * dt)/(2 * dx**2) + (diffusion.partial_x(x, 0) * dt)/(4 * dx)
+    def D3(x, y):
+        return (diffusion(x, y) * dt)/(2 * dx**2) + (diffusion.partial_x(x, y) * dt)/(4 * dx)
 
     matrix = np.zeros((n_grid, n_grid))
     
     # Generate the tridiagonal matrix
     for i in range(1, n_grid-1):
         x = xcoords[i]
-        matrix[i, i-1:i+2] = np.array([D1(x), D2(x), D3(x)])
+        matrix[i, i-1:i+2] = np.array([D1(x, y), D2(x, y), D3(x, y)])
 
     # Set open neumann boundary conditions; C1 - C0 = C2 - C1
     matrix[0, 1:3] = np.array([-1, 1])
@@ -153,26 +153,26 @@ def generate_right_matrix_y(C, diffusion, x): #TODO: Modify
         diffusion (_type_): _description_
     """
 
-    dx = C.dx 
+    dy = C.dy
     dt = C.dt/2
     n_grid = C.n_grid
-    xcoords = C.xcoords
+    ycoords = C.ycoords
     # Define coefficient clusters
-    def D1(x):
-        return (diffusion(x, 0) * dt)/(2 * dx**2) - (diffusion.partial_x(x, 0) * dt)/(4 * dx)
+    def D1(x, y):
+        return (diffusion(x, y) * dt)/(2 * dy**2) - (diffusion.partial_y(x, y) * dt)/(4 * dy)
     
-    def D2(x):
-        return -(diffusion(x, 0) * dt)/(dx**2) + 1
+    def D2(x, y):
+        return -(diffusion(x, y) * dt)/(dy**2) + 1
 
-    def D3(x):
-        return (diffusion(x, 0) * dt)/(2 * dx**2) + (diffusion.partial_x(x, 0) * dt)/(4 * dx)
+    def D3(x, y):
+        return (diffusion(x, y) * dt)/(2 * dy**2) + (diffusion.partial_x(x, y) * dt)/(4 * dy)
 
     matrix = np.zeros((n_grid, n_grid))
     
     # Generate the tridiagonal matrix
     for i in range(1, n_grid-1):
-        x = xcoords[i]
-        matrix[i, i-1:i+2] = np.array([D1(x), D2(x), D3(x)])
+        y = ycoords[i]
+        matrix[i, i-1:i+2] = np.array([D1(x, y), D2(x, y), D3(x, y)])
 
     # Set open neumann boundary conditions; C1 - C0 = C2 - C1
     matrix[0, 1:3] = np.array([-1, 1])
@@ -269,7 +269,7 @@ def generate_explicit_comp_y(C, diffusion, i): #TODO: Boundary conditions need t
     dx = C.dx
     dt = C.dt/2
     diff_vec = diffusion(x, y_coords) # diffusion needs to be a vectorized function
-    grad_diff_vec = diffusion.partial_y(x, y_coords)
+    grad_diff_vec = diffusion.partial_x(x, y_coords)
 
     # Seperately handle boundary conditions at j=0 and j=ngrid with forward/backward euler
     if i == 0:
@@ -356,7 +356,14 @@ def ADI(
             # Explicit component
             d = generate_explicit_comp_x(C, diffusion, j)
             b = B@C_i + d
-            C_next = solve_banded((1,1), ab, b)
+            print(b)
+            try:
+                C_next = solve_banded((1,1), ab, b)
+            except ValueError as e:
+                print("Timestep:", timestep, "x-dir")
+                print(B)
+                print(d)
+                raise ValueError
             C.next[:, j] = C_next
         # Skip over saving the half-timestep results
         C.shift()
@@ -370,7 +377,12 @@ def ADI(
             # Explicit component
             d = generate_explicit_comp_y(C, diffusion, i)
             b = B@C_j + d
-            C_next = solve_banded((1,1), ab, b)
+            try:
+                C_next = solve_banded((1,1), ab, b)
+            except ValueError as e:
+                print("Timestep:", timestep, "x-dir,", e)
+                print(B)
+                print(d)
             C.next[i, :] = C_next
         C.store_timestep(timestep)
         C.shift()
