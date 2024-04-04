@@ -207,15 +207,8 @@ def generate_explicit_comp_x(C, diffusion, j):
         C_j = C.now[:, j+1]
         C_jm1 = C.now[:, j]
 
-        if type(diff_vec) != np.ndarray:
-            term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
-        else:
-            term1 = (dt/dy**2) * (diff_vec @ (C_jp1 - 2*C_j + C_jm1))
-
-        if type(grad_diff_vec) != np.ndarray:
-            term2 = dt/(dy) * (grad_diff_vec * (C_j - C_jm1))
-        else:
-            term2 = dt/(dy) * (grad_diff_vec @ (C_j - C_jm1))
+        term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
+        term2 = dt/(dy) * (grad_diff_vec * (C_j - C_jm1))
         return term1 + term2
         
     elif j == (n_grid-1):
@@ -225,15 +218,8 @@ def generate_explicit_comp_x(C, diffusion, j):
 
         # Routine to take care of scalars
 
-        if type(diff_vec) != np.ndarray:
-            term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
-        else:
-            term1 = (dt/dy**2) * (diff_vec @ (C_jp1 - 2*C_j + C_jm1))
-
-        if type(grad_diff_vec) != np.ndarray:
-            term2 = dt/(dy) * (grad_diff_vec * (C_jp1 - C_j))
-        else:
-            term2 = dt/(dy) * (grad_diff_vec @ (C_jp1 - C_j))
+        term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
+        term2 = dt/(dy) * (grad_diff_vec * (C_jp1 - C_j))
         return term1 + term2
     
     else:
@@ -244,16 +230,8 @@ def generate_explicit_comp_x(C, diffusion, j):
         print("C_j", C_j)
         # Routine to take care of scalars
 
-        if type(diff_vec) != np.ndarray:
-            term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
-        else:
-            term1 = (dt/dy**2) * (diff_vec @ (C_jp1 - 2*C_j + C_jm1))
-
-        if type(grad_diff_vec) != np.ndarray:
-            term2 = dt/(2*dy) * (grad_diff_vec * (C_jp1 - C_jm1))
-        else:
-            term2 = dt/(2*dy) * (grad_diff_vec @ (C_jp1 - C_jm1))
-
+        term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
+        term2 = dt/(2*dy) * (grad_diff_vec * (C_jp1 - C_jm1))
         return term1 + term2
 
 def generate_explicit_comp_y(C, diffusion, i): #TODO: Boundary conditions need to be handled here for the explicit direction as well
@@ -281,15 +259,8 @@ def generate_explicit_comp_y(C, diffusion, i): #TODO: Boundary conditions need t
         C_i = C.now[i+1,:]
         C_im1 = C.now[i,:]
 
-        if type(diff_vec) != np.ndarray:
-            term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
-        else:
-            term1 = (dt/dx**2) * (diff_vec @ (C_ip1 - 2*C_i + C_im1))
-
-        if type(grad_diff_vec) != np.ndarray:
-            term2 = dt/(dx) * (grad_diff_vec * (C_i - C_im1))
-        else:
-            term2 = dt/(dx) * (grad_diff_vec @ (C_i - C_im1))
+        term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
+        term2 = dt/(dx) * (grad_diff_vec * (C_i - C_im1))
         return term1 + term2
         
     elif i == (n_grid-1):
@@ -299,15 +270,8 @@ def generate_explicit_comp_y(C, diffusion, i): #TODO: Boundary conditions need t
 
         # Routine to take care of scalars
 
-        if type(diff_vec) != np.ndarray:
-            term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
-        else:
-            term1 = (dt/dx**2) * (diff_vec @ (C_ip1 - 2*C_i + C_im1))
-
-        if type(grad_diff_vec) != np.ndarray:
-            term2 = dt/(dx) * (grad_diff_vec * (C_ip1 - C_i))
-        else:
-            term2 = dt/(dx) * (grad_diff_vec @ (C_ip1 - C_i))
+        term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
+        term2 = dt/(dx) * (grad_diff_vec * (C_ip1 - C_i))
         return term1 + term2
 
     else:
@@ -315,15 +279,9 @@ def generate_explicit_comp_y(C, diffusion, i): #TODO: Boundary conditions need t
         C_i = C.now[i,:]
         C_im1 = C.now[i-1,:]
         #Routine to take care of scalars
-        if type(diff_vec) != np.ndarray:
-            term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
-        else:
-            term1 = (dt/dx**2) * (diff_vec @ (C_ip1 - 2*C_i + C_im1))
-        
-        if type(grad_diff_vec) != np.ndarray:
-            term2 = dt/(2*dx) * (grad_diff_vec * (C_ip1 - C_im1))
-        else:
-            term2 = dt/(2*dx) * (grad_diff_vec @ (C_ip1 - C_im1))
+
+        term1 = (dt/dx**2) * (diff_vec * (C_ip1 - 2*C_i + C_im1))
+        term2 = dt/(2*dx) * (grad_diff_vec * (C_ip1 - C_im1))
         return term1 + term2
 
 

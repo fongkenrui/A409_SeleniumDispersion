@@ -30,22 +30,26 @@ def calculate_boundary_flux(the_ds):
         # Left Boundary
         cl0 = C[0,:]
         cl1 = C[0,:]
-        Jl = - D[0, :] @ (cl0 - cl1)/dx
+        Jl = - D[0, :] @ (cl0 - cl1)*(dy/dx)
         # Right Boundary
         cr0 = C[-2,:]
         cr1 = C[-1,:]
-        Jr = - D[-1, :] @ (cr0 - cr1)/dx
+        Jr = - D[-1, :] @ (cr0 - cr1)*(dy/dx)
         # Top Boundary
         ct0 = C[:,0]
         ct1 = C[:, 1]
-        Jt = - D[:, 0] @ (ct0 - ct1)/dy
+        Jt = - D[:, 0] @ (ct0 - ct1)*(dx/dy)
         # Bottom Boundary
         cb0 = C[:,-2]
         cb1 = C[:,-1]
-        Jb = - D[:, 0] @ (cb1 - cb0)/dy
+        Jb = - D[:, 0] @ (cb1 - cb0)*(dx/dy)
 
         J_current = Jl + Jr + Jt + Jb
-        cumflux[n] = J_current*dt + np.sum(cumflux)
+        print(J_current)
+        if n == 0:
+            cumflux[n] = J_current*dt
+        else:
+            cumflux[n] = J_current*dt + cumflux[n-1]
 
     return cumflux
 
