@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
-from scipy.interpolate import RectBivariateSpline
+from scipy.interpolate import RegularGridInterpolator
 
 
 class XYfunc(object):
@@ -49,7 +49,7 @@ class Interpolate(XYfunc):
     """Class for holding a 2-D spline function interpolated from an array 
     of values, as well its gradient functions.
     """
-    def __init__(self, array, xcoords, ycoords):
+    def __init__(self, array, xcoords, ycoords, method='cubic'):
         """Takes in an array of values f(x, y) with vectors of x and y values,
         and performs 2-D spline interpolation Scipy.RectBivariateSpline
 
@@ -57,29 +57,29 @@ class Interpolate(XYfunc):
             array (ArrayLike): f(x,y) evaluated at discrete (x,y) gridpoints
             xcoords (ArrayLike): 1-D vector of x-values
             ycoords (ArrayLike): 1-D vector of y-values 
+            s (float): Smoothing parameter for interpolation
         """
 
         # Attribute storing the actual spline function, needed for plot_2D parent method
-        spline = RectBivariateSpline(xcoords, ycoords, array)
-        self.func = lambda x, y: spline(x, y, grid=False)
-        # Useful for defining the relevant domain for visualizing the function 
-        self.xcoords = xcoords
-        self.ycoords = ycoords
-        self.partial_x = lambda x, y: spline.partial_derivative(dx=1, dy=0)(x, y, grid = False)
-        self.partial_y = lambda x, y: spline.partial_derivative(dx=0, dy=1)(x, y, grid = False)
-        # Gradient of spline function should be generated at initialization
+        spline = RegularGridInterpolator((xcoords, ycoords), array, method=method, bounds_error=False, fill_value=None)
+        self.func = lambda x, y: spline((x, y))
+        # Useful for defining the relevant domain for visualizing the function
+        # Create a finer mesh based on the bounds given
+        self.xcoords = np.linspace(xcoords[0], xcoords[-1], 200)
+        self.ycoords = np.linspace(ycoords[0], ycoords[-1], 200)
+        # Finite differences needed for regular grid interpolator
+        self.dx = min(0.01, np.diff(self.xcoords)[0])
+        self.dy = min(0.01, np.diff(self.ycoords)[0])
 
-        return
-
-    def partial_x(self):
+    def partial_x(self, x, y):
         """Partial derivative of function with respect to x
         """
-        return partial_x
+        return 0.5*self.dx*(self.func(x+self.dx, y) - self.func(x-self.dx, y))
 
-    def partial_y(self):
+    def partial_y(self, x, y):
         """Partial derivative of function with respect to y
         """
-        return partial_y
+        return 0.5*self.dy*(self.func(x, y+self.dy) - self.func(x, y+self.dy))
 
     def plot_2D(self):
         """
