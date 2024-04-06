@@ -65,7 +65,8 @@ def integrate_concentration(the_ds):
     return the_ds.sum(dim=('x', 'y')).values*(dy*dx)
 
 def plot_mass_conservation(the_ds):
-    """Plots total pollutant concentration, time-integrated flux, and the sum of both.
+    """Plots total pollutant concentration, time-integrated flux, and the sum of both, normalized
+    by initial total concentration.
 
     Args:
         the_ds (_type_): _description_
@@ -74,9 +75,9 @@ def plot_mass_conservation(the_ds):
     cumflux = calculate_boundary_flux(the_ds)
     totalconc = integrate_concentration(the_ds)
     fig, ax = plt.subplots()
-    ax.plot(time, cumflux, label='boundary flux')
-    ax.plot(time, totalconc, label='mass in boundary')
-    ax.plot(time, totalconc + cumflux, label='total mass')
+    ax.plot(time, cumflux/totalconc[0], label='boundary flux')
+    ax.plot(time, totalconc/totalconc[0], label='mass in boundary')
+    ax.plot(time, (totalconc + cumflux)/totalconc[0], label='total mass')
     ax.legend()
     return fig, ax
 
