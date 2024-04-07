@@ -11,7 +11,7 @@ def forward_euler(C, diffusion):
         dC_dt (ArrayLike): A numpy ndarray for the interior points of the grid (size (N-2) by (N-2))
     """
 
-    C.next[1:-1,1:-1] = C.now[1:-1, 1:-1 ] + C.dt*(diffusion*((C.now[2:, 1:-1] - C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/C.dx**2 + (C.now[1:-1, 2:] - C.now[1:-1] + C.now[1:-1, 0:-2] )/C.dy**2) + (C.now[2:, 1:-1] - C.now[0:-2])/2*C.dx + (C.now[1:-1, 2:] - C.now[1:-1, 0:-2 ])/2*C.dy)  
+    C.next[1:-1,1:-1] = C.now[1:-1, 1:-1 ] + C.dt*(diffusion*((C.now[2:, 1:-1] - C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/C.dx**2 + (C.now[1:-1, 2:] - C.now[1:-1, 1:-1] + C.now[1:-1, 0:-2] )/C.dy**2) + (C.now[2:, 1:-1] - C.now[0:-2,1:-1])/(2*C.dx) + (C.now[1:-1, 2:] - C.now[1:-1, 0:-2 ])/(2*C.dy))  
 
 
 
@@ -29,7 +29,7 @@ def zero_dirichlet(C):
     C[ : ,0] = 0
     C[ : ,-1] = 0
     
-    
+
 
 
 def neumann(C): # In hindsight, this kind of neumann conditions should be more accurate
