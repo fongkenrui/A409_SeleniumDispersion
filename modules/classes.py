@@ -4,8 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
-from scipy.interpolate import RectBivariateSpline
-
+from scipy.interpolate import RectBivariateSpline, RegularGridInterpolator, bisplrep, bisplev
 
 class XYfunc(object):
     """Root class for defining coefficient functions f(x, y) and their gradients. The stored functions
@@ -49,7 +48,7 @@ class Interpolate(XYfunc):
     """Class for holding a 2-D spline function interpolated from an array 
     of values, as well its gradient functions.
     """
-    def __init__(self, array, xcoords, ycoords):
+    def __init__(self, array, xcoords, ycoords, s=0):
         """Takes in an array of values f(x, y) with vectors of x and y values,
         and performs 2-D spline interpolation Scipy.RectBivariateSpline
 
@@ -57,38 +56,56 @@ class Interpolate(XYfunc):
             array (ArrayLike): f(x,y) evaluated at discrete (x,y) gridpoints
             xcoords (ArrayLike): 1-D vector of x-values
             ycoords (ArrayLike): 1-D vector of y-values 
+            s (float): Smoothing parameter for interpolation
         """
 
         # Attribute storing the actual spline function, needed for plot_2D parent method
-        spline = RectBivariateSpline(xcoords, ycoords, array)
+        spline = RectBivariateSpline(xcoords, ycoords, array, s=s)
         self.func = lambda x, y: spline(x, y, grid=False)
-        # Useful for defining the relevant domain for visualizing the function 
+        # Store spline derivatives so it does not get repeatedly constructed
+        self.partial_x_store = spline.partial_derivative(dx=1, dy=0)
+        self.partial_y_store = spline.partial_derivative(dx=0, dy=1)
+        self.partial_x = lambda x, y: self.partial_x_store(x, y, grid=False)
+        self.partial_y = lambda x, y: self.partial_y_store(x, y, grid=False)
+        # Useful for defining the relevant domain for visualizing the function
+        # Create a finer mesh based on the bounds given
         self.xcoords = xcoords
         self.ycoords = ycoords
-        self.partial_x = lambda x, y: spline.partial_derivative(dx=1, dy=0)(x, y, grid = False)
-        self.partial_y = lambda x, y: spline.partial_derivative(dx=0, dy=1)(x, y, grid = False)
-        # Gradient of spline function should be generated at initialization
+        # Finite differences needed for regular grid interpolator
+        self.dx = min(0.01, np.diff(self.xcoords)[0])
+        self.dy = min(0.01, np.diff(self.ycoords)[0])
 
-        return
-
-    def partial_x(self):
+    def partial_x(self, x, y):
         """Partial derivative of function with respect to x
         """
-        return partial_x
+        return self.partial_x(x, y)
+        #return 0.5*self.dx*(self.func(x+self.dx, y) - self.func(x-self.dx, y))
 
-    def partial_y(self):
+    def partial_y(self, x, y):
         """Partial derivative of function with respect to y
         """
-        return partial_y
+        return self.partial_y(x, y)
+        #return 0.5*self.dy*(self.func(x, y+self.dy) - self.func(x, y-self.dy))
 
-    def plot_2D(self):
+    def plot_2D(self, func='func'):
         """
         Convenience function to visualize the function on a 2-D plot
         """
         X, Y = np.meshgrid(self.xcoords, self.ycoords)
+        if func == 'func':
+            Z = self.func(X, Y)
+        elif func == 'partial_x':
+            Z = self.partial_x(X, Y)
+        elif func == 'partial_y':
+            Z = self.partial_y(X, Y)
+        else:
+            raise ValueError("func must be one of 'func', 'partial_x', 'partial_y.")
         fig = plt.figure()
         ax = plt.axes(projection='3d')
-        ax.plot_surface(X, Y, self.func(X, Y))
+        ax.plot_surface(X, Y, Z)
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
         return fig, ax
 
 class Analytic(XYfunc):
