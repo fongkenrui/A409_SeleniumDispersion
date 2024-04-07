@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from .ADI import ADI
 from .classes import Quantity2D, Analytic, Interpolate
+from matplotlib import animation
 
 
 def calculate_boundary_flux(the_ds):
@@ -133,3 +134,26 @@ def test_gaussian():
         },
     )
     return result_ds, ads
+
+
+def animate(ds, vmin=None, vmax=None):
+    if not vmin:
+        vmin = ds.min()
+    if not vmax:
+        vmax = ds.max()
+
+    n_time = ds.attrs['n_time']
+    fig, ax = plt.subplots()
+    x = ds.coords['x']
+    y = ds.coords['y']
+    z = ds.values
+    def animate(t):
+        ax.clear()
+        ax.pcolormesh(x, y, z[t], vmin=vmin, vmax=vmax, cmap='seismic')
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+    
+    anim = animation.FuncAnimation(fig, animate, frames = n_time, interval=1, repeat=True)
+    plt.show()
+    writergif = animation.PillowWriter(fps=30)
+    return anim, writergif
