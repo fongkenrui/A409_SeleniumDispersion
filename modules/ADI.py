@@ -327,9 +327,7 @@ def ADI(
         C.store_timestep(timestep)
         C.shift()
 
-    # Cast C to an xarray format
     X, Y = np.meshgrid(xcoords, ycoords)
-
     ds = xr.DataArray(
         data=C.value,
         coords={

@@ -6,6 +6,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
+from .ADI import ADI
+from .classes import Quantity2D, Analytic, Interpolate
 
 
 def calculate_boundary_flux(the_ds):
@@ -84,5 +86,54 @@ def plot_mass_conservation(the_ds):
 def test_gaussian():
     """Routine that runs the 2D CN-ADI simulation and checks the discrepancy against analytic solutions.
     """
-    return# Module for creating test cases
+    # Define the domain
+    xrange = (-10, 10)
+    yrange = (-10, 10)
+    trange=(0, 1)
+    n_grid = 50
+    n_time = 500
+    conc = Quantity2D(
+        n_grid,
+        n_time,
+        xrange,
+        yrange,
+        trange,
+    )
+
+    diffusion = Analytic(lambda x, y: 1)
+    diffusion.set_partial_x(lambda x, y: 0)
+    diffusion.set_partial_y(lambda x, y: 0)
+
+    xcoords = conc.xcoords
+    ycoords = conc.ycoords
+    tcoords = conc.tcoords
+    X, Y = np.meshgrid(xcoords, ycoords)
+    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)**2)
+
+    def kernel(x, y, t):
+        t0 = -1
+        return (1/(4*np.pi*(t-t0)))*np.exp(-(x**2 + y**2)/(4*(t-t0)))
+
+    xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords)
+    analytic = kernel(xg, yg, tg)
+    result_ds = ADI(conc, diffusion, initial_condition)
+
+    ads = xr.DataArray(
+        data=analytic,
+        coords={
+            'x': xcoords,
+            'y': ycoords,
+            't': tcoords,
+        },
+        name='concentration',
+        attrs={
+            'dx': C.dx,
+            'dy': C.dy,
+            'dt': C.dt,
+            'n_grid': n_grid,
+            'n_time': n_time,
+            'initial_condition': initial_condition,
+        },
+    )
+    return result_ds - ads
 
