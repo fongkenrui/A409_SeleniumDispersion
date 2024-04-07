@@ -4,7 +4,7 @@ import numpy as np
 from .functions import forward_euler, zero_dirichlet, set_initial_condition_2D
 
 
-def forward_euler_final(C, diffusion, boundary, deriv, parameters,intiial_condition):
+def forward_euler_final(C, diffusion, initial_condition):
     """_summary_
     
     Args:
