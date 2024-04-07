@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import copy
 from scipy.interpolate import RectBivariateSpline, RegularGridInterpolator, bisplrep, bisplev
 
+
 class XYfunc(object):
     """Root class for defining coefficient functions f(x, y) and their gradients. The stored functions
     need to be vectorized.
@@ -236,7 +237,7 @@ class Quantity2D(object):
 
 class Quantity1D(object):
     """Object to hold arrays and attributes for the function to be solved f(x, t).
-
+       
     Args:
         object (_type_): _description_
     """
