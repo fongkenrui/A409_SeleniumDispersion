@@ -1,4 +1,5 @@
 ## Module for storing functions defining derivatives, initial conditions and boundary conditions
+import numpy as np 
 
 def forward_euler(C, diffusion):
     """Centred difference scheme for 2-D heat equation with varying diffusion coefficient
@@ -10,8 +11,14 @@ def forward_euler(C, diffusion):
     returns:
         dC_dt (ArrayLike): A numpy ndarray for the interior points of the grid (size (N-2) by (N-2))
     """
+    
+    array_x, array_y = np.meshgrid(C.xcoords, C.ycoords)
+    array_x, array_y = array_x[1:-1, 1:-1], array_y[1:-1, 1:-1]
 
-    C.next[1:-1,1:-1] = C.now[1:-1, 1:-1 ] + C.dt*(diffusion*((C.now[2:, 1:-1] - C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/C.dx**2 + (C.now[1:-1, 2:] - C.now[1:-1, 1:-1] + C.now[1:-1, 0:-2] )/C.dy**2) + (C.now[2:, 1:-1] - C.now[0:-2,1:-1])/(2*C.dx) + (C.now[1:-1, 2:] - C.now[1:-1, 0:-2 ])/(2*C.dy))  
+    deriv2 = (C.now[2:, 1:-1] - C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/C.dx**2 + (C.now[1:-1, 2:] - C.now[1:-1, 1:-1] + C.now[1:-1, 0:-2])/C.dy**2
+    deriv1 = diffusion.partial_x(array_x,array_y)*(C.now[2:, 1:-1] - C.now[0:-2,1:-1])/(2*C.dx) + diffusion.partial_y(array_x,array_y)*(C.now[1:-1, 2:] - C.now[1:-1, 0:-2 ])/(2*C.dy)
+
+    C.next[1:-1,1:-1] = C.now[1:-1, 1:-1 ] + C.dt*(diffusion(array_x, array_y)*(deriv2) + (deriv1))  
 
 
 
@@ -24,10 +31,10 @@ def zero_dirichlet(C):
         C (Quantity): A Quantity object representing the concentration C(x, y, t)
     """
 
-    C[0, : ] = 0 
-    C[-1, : ] = 0
-    C[ : ,0] = 0
-    C[ : ,-1] = 0
+    C.next[0, : ] = 0 
+    C.next[-1, : ] = 0
+    C.next[ : ,0] = 0
+    C.next[ : ,-1] = 0
     
 
 

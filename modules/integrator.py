@@ -41,8 +41,8 @@ def forward_euler_final(C, diffusion, initial_condition):
             'dx': C.dx,
             'dy': C.dy,
             'dt': C.dt,
-            'n_grid': n_grid,
-            'n_time': n_time,
+            'n_grid': C.n_grid,
+            'n_time': C.n_time,
             'initial_condition': initial_condition,
             'diffusion_coefficient': diffusion(C.xcoords, C.ycoords),
             #'sources': sources, if we can figure it out LOLZ
