@@ -160,6 +160,7 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         matrix[0, 1] = 2*r1(xcoords[0], y)
         matrix[-1, -2] = 2*r1(xcoords[-1], y)
         matrix[-1, -1] = D2(xcoords[-1], y)
+        return matrix
 
     else:
         matrix[0, 1:3] = np.array([-1, 1])
@@ -261,7 +262,6 @@ def generate_explicit_comp_x(C, diffusion, j, BC):
         term1 = (dt/dy**2) * (diff_vec * (C_jp1 - 2*C_j + C_jm1))
         term2 = dt/(2*dy) * (grad_diff_vec * (C_jp1 - C_jm1))
         b = term1 + term2
-        
         return b
 
 def generate_explicit_comp_y(C, diffusion, i, BC): 
@@ -353,7 +353,7 @@ def ADI(
         C.shift()
 
         # Perform y-direction implicit
-        for i in range(0, n_grids):
+        for i in range(0, n_grid):
             x = xcoords[i]
             C_j = C.now[i, :] # Slice the array
             ab = generate_left_matrix_y(C, diffusion, x, BC=BC)
@@ -364,7 +364,7 @@ def ADI(
             try:
                 C_next = solve_banded((1,1), ab, b)
             except ValueError as e:
-                print("Timestep:", timestep, "x-dir,", e)
+                print("Timestep:", timestep, "y-dir,", e)
                 print(B)
                 print(d)
             C.next[i, :] = C_next
