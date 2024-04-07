@@ -11,11 +11,6 @@ from scipy.linalg.lapack import cgtsv
 
 def generate_left_matrix(C, diffusion):
     """Generates the Crank-Nicholson matrix A to be inverted on the LHS of the matrix equation $AC_{i+1} = B{C_i}$
-    --------------------------------------------------------------------------------------------------------------
-    In order to maintain a tridiagonal matrix structure, the Neumann boundary condition is modified such that 
-    C(t+dt, x1) - C(t+dt, x0) = C(t, x2) - C(t, x1) rather than C(t+dt, x1) - C(t+dt, x0) = C(t+dt, x2) - C(t+dt, x1).
-    The coefficients are encoded in the left and right matrices which operate on C(t+dt) and C(t) respectively.
-    -------------------------------------------------------------------------------------------------------------
 
     Args:
         C (_type_): _description_
@@ -58,11 +53,6 @@ def generate_left_matrix(C, diffusion):
 def generate_diagonal_banded_form(C, diffusion):
     """Generates the Crank-Nicholson matrix A to be inverted on the LHS of the matrix equation $AC_{i+1} = B{C_i}$.
     Matrix is in diagonal-banded form for input into a tridiagonal solver.
-    --------------------------------------------------------------------------------------------------------------
-    In order to maintain a tridiagonal matrix structure, the Neumann boundary condition is modified such that 
-    C(t+dt, x1) - C(t+dt, x0) = C(t, x2) - C(t, x1) rather than C(t+dt, x1) - C(t+dt, x0) = C(t+dt, x2) - C(t+dt, x1).
-    The coefficients are encoded in the left and right matrices which operate on C(t+dt) and C(t) respectively.
-    -------------------------------------------------------------------------------------------------------------
 
     Args:
         C (_type_): _description_

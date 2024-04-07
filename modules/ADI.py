@@ -14,11 +14,6 @@ from scipy.linalg.lapack import cgtsv
 def generate_left_matrix_x(C, diffusion, y, BC): #TODO: Memoization tradeoff? Will have n_grid matrices to store
     """Generates the Crank-Nicholson matrix A to be inverted on the LHS of the matrix equation $AC_{i+1} = B{C_i}$.
     Matrix is in diagonal-banded form for input into a tridiagonal solver.
-    --------------------------------------------------------------------------------------------------------------
-    In order to maintain a tridiagonal matrix structure, the Neumann boundary condition is modified such that 
-    C(t+dt, x1) - C(t+dt, x0) = C(t, x2) - C(t, x1) rather than C(t+dt, x1) - C(t+dt, x0) = C(t+dt, x2) - C(t+dt, x1).
-    The coefficients are encoded in the left and right matrices which operate on C(t+dt) and C(t) respectively.
-    -------------------------------------------------------------------------------------------------------------
 
     Args:
         C (_type_): _description_
@@ -53,10 +48,15 @@ def generate_left_matrix_x(C, diffusion, y, BC): #TODO: Memoization tradeoff? Wi
     l[0: n_grid-2] = D1(x_coords[1: n_grid-1], y)
     # Set boundary conditions
     if BC == 'neumann':
-        u[1] = -2*r2(x_coords[0], y)
+        u[1] = -2*r1(x_coords[0], y)
         d[0] = - D2(x_coords[0], y)
         d[-1] = D2(x_coords[-1], y)
-        l[-2] = -2*r2(x_coords[-1], y)
+        l[-2] = -2*r1(x_coords[-1], y)
+    elif BC == 'open':
+        u[1] = -2*r2(x_coords[0], y)
+        d[0] = 1 + 2*r2(x_coords[0], y) 
+        d[-1] = 1 - 2*r2(x_coords[-1], y)
+        l[-2] = 2*r2(x_coords[-1], y)
     # Stack into a banded form
     ab = np.stack((u, d, l))
     return ab
@@ -64,11 +64,6 @@ def generate_left_matrix_x(C, diffusion, y, BC): #TODO: Memoization tradeoff? Wi
 def generate_left_matrix_y(C, diffusion, x, BC): 
     """Generates the Crank-Nicholson matrix A to be inverted on the LHS of the matrix equation $AC_{i+1} = B{C_i}$.
     Matrix is in diagonal-banded form for input into a tridiagonal solver.
-    --------------------------------------------------------------------------------------------------------------
-    In order to maintain a tridiagonal matrix structure, the Neumann boundary condition is modified such that 
-    C(t+dt, x1) - C(t+dt, x0) = C(t, x2) - C(t, x1) rather than C(t+dt, x1) - C(t+dt, x0) = C(t+dt, x2) - C(t+dt, x1).
-    The coefficients are encoded in the left and right matrices which operate on C(t+dt) and C(t) respectively.
-    -------------------------------------------------------------------------------------------------------------
 
     Args:
         C (_type_): _description_
@@ -104,10 +99,15 @@ def generate_left_matrix_y(C, diffusion, x, BC):
     l[0: n_grid-2] = D1(x, y_coords[1: n_grid-1])
     # Set boundary conditions
     if BC == 'neumann':
-        u[1] = -2*r2(x, y_coords[0])
+        u[1] = -2*r1(x, y_coords[0])
         d[0] = - D2(x, y_coords[0])
         d[-1] = D2(x, y_coords[-1])
-        l[-2] = -2*r2(x, y_coords[-1])
+        l[-2] = -2*r1(x, y_coords[-1])
+    elif BC == 'open':
+        u[1] = -2*r2(x, y_coords[0])
+        d[0] = 1 + 2*r2(x, y_coords[0])
+        d[-1] = 1 - 2*r2(x, y_coords[-1])
+        l[-2] = 2*r2(x, y_coords[-1])
     # Stack into a banded form
     ab = np.stack((u, d, l))
     return ab
@@ -115,11 +115,6 @@ def generate_left_matrix_y(C, diffusion, x, BC):
 
 def generate_right_matrix_x(C, diffusion, y, BC): 
     """Generates the matrix B which operates on C_i in the matrix equation $A{C_i+1} = B{C_i}$
-    --------------------------------------------------------------------------------------------------------------
-    In order to maintain a tridiagonal matrix structure, the Neumann boundary condition is modified such that 
-    C(t+dt, x1) - C(t+dt, x0) = C(t, x2) - C(t, x1) rather than C(t+dt, x1) - C(t+dt, x0) = C(t+dt, x2) - C(t+dt, x1).
-    The coefficients are encoded in the left and right matrices which operate on C(t+dt) and C(t) respectively.
-    -------------------------------------------------------------------------------------------------------------
 
     Args:
         C (_type_): _description_
@@ -161,6 +156,12 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         matrix[-1, -2] = 2*r1(xcoords[-1], y)
         matrix[-1, -1] = D2(xcoords[-1], y)
         return matrix
+    elif BC == 'open':
+        matrix[0, 0] = 1 - 2*r2(xcoords[0], y)
+        matrix[0, 1] = 2*r2(xcoords[0], y)
+        matrix[-1, -2] = -2*r2(xcoords[-1], y)
+        matrix[-1, -1] = 1 + 2*r2(xcoords[-1], y)
+        return matrix
 
     else:
         matrix[0, 1:3] = np.array([-1, 1])
@@ -169,11 +170,6 @@ def generate_right_matrix_x(C, diffusion, y, BC):
 
 def generate_right_matrix_y(C, diffusion, x, BC): 
     """Generates the matrix B which operates on C_i in the matrix equation $A{C_i+1} = B{C_i} + d$
-    --------------------------------------------------------------------------------------------------------------
-    In order to maintain a tridiagonal matrix structure, the Neumann boundary condition is modified such that 
-    C(t+dt, x1) - C(t+dt, x0) = C(t, x2) - C(t, x1) rather than C(t+dt, x1) - C(t+dt, x0) = C(t+dt, x2) - C(t+dt, x1).
-    The coefficients are encoded in the left and right matrices which operate on C(t+dt) and C(t) respectively.
-    -------------------------------------------------------------------------------------------------------------
 
     Args:
         C (_type_): _description_
@@ -215,11 +211,15 @@ def generate_right_matrix_y(C, diffusion, x, BC):
         matrix[-1, -2] = 2*r1(x, ycoords[-1])
         matrix[-1, -1] = D2(x, ycoords[-1])
         return matrix
-    
+    elif BC == 'open':
+        matrix[0, 0] = 1 - 2*r2(x, ycoords[0])
+        matrix[0, 1] = 2*r2(x, ycoords[0])
+        matrix[-1, -2] = -2*r2(x, ycoords[-1])
+        matrix[-1, -1] = 1 + 2*r2(x, ycoords[-1])
+        return matrix
     else:
         matrix[0, 1:3] = np.array([-1, 1])
         matrix[-1, -3:-1] = np.array([-1, 1])
-        
         return matrix
 
 def generate_explicit_comp_x(C, diffusion, j, BC):
@@ -247,12 +247,20 @@ def generate_explicit_comp_x(C, diffusion, j, BC):
             C_jp1 = C.now[:, j+1]
             C_j = C.now[:, j]
             return (dt/dy**2) * (diff_vec * (2*C_jp1 - 2*C_j))
+        elif BC == 'open':
+            C_jp1 = C.now[:, j+1]
+            C_j = C.now[:, j]
+            return dt/(dy) * (grad_diff_vec * (C_jp1 - C_j) )
 
     elif j == (n_grid - 1):
         if BC == 'neumann':
             C_j = C.now[:, j]
             C_jm1 = C.now[:, j-1]
             return (dt/dy**2) * (diff_vec * (2*C_jm1 - 2*C_j))
+        elif BC == 'open':
+            C_j = C.now[:, j]
+            C_jm1 = C.now[:, j-1]
+            return dt/(dy) * (grad_diff_vec * (C_j - C_jm1) )
 
     else:
         C_jp1 = C.now[:, j+1] 
@@ -289,12 +297,20 @@ def generate_explicit_comp_y(C, diffusion, i, BC):
             C_ip1 = C.now[i+1,:] 
             C_i = C.now[i,:]
             return (dt/dx**2) * (diff_vec * (2*C_ip1 - 2*C_i))
+        elif BC == 'open':
+            C_ip1 = C.now[i+1,:] 
+            C_i = C.now[i,:]
+            return dt/(dx) * (grad_diff_vec * (C_ip1 - C_i) )
 
     elif i == (n_grid - 1):
         if BC == 'neumann':
             C_i = C.now[i,:]
             C_im1 = C.now[i-1,:]
             return (dt/dx**2) * (diff_vec * (2*C_im1 - 2*C_i))
+        elif BC == 'open':
+            C_i = C.now[i,:]
+            C_im1 = C.now[i-1,:]
+            return dt/(dx) * (grad_diff_vec * (C_i - C_im1) )
 
     else:
         C_ip1 = C.now[i+1,:] 
