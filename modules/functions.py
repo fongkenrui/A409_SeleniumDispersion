@@ -1,16 +1,20 @@
 ## Module for storing functions defining derivatives, initial conditions and boundary conditions
 
-def centred_diff_2D(C, diffusion):
+def forward_euler(C, diffusion):
     """Centred difference scheme for 2-D heat equation with varying diffusion coefficient
 
     Args:
         C (Quantity): A Quantity object representing the concentration C(x, y, t)
         diffusion (XYfunc): An XYfunc object representing the diffusion coefficient D(x, y)
-
+ 
     returns:
         dC_dt (ArrayLike): A numpy ndarray for the interior points of the grid (size (N-2) by (N-2))
     """
-    return
+
+
+    C.next[1:-1,1:-1] = C.now[1:-1, 1:-1 ] + dt*(diffusion*((C.now[2:, 1:-1] - C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/dx**2 + (C.now[1:-1, 2:] - C.now[1:-1] + C.now[1:-1, 0:-2] )/dy**2) + (C.now[2:, 1:-1] - C.now[0:-2])/2*dx + (C.now[1:-1, 2:] - C.now[1:-1, 0:-2 ])/2*dy)  
+
+
 
 def zero_dirichlet(C): 
     """Performs in-place modification of arrays stored in the C Quantity object to enforce boundary conditions.
