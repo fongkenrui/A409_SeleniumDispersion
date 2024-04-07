@@ -108,7 +108,7 @@ def test_gaussian():
     ycoords = conc.ycoords
     tcoords = conc.tcoords
     X, Y = np.meshgrid(xcoords, ycoords)
-    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)**2)
+    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/4)
 
     def kernel(x, y, t):
         t0 = -1
@@ -127,13 +127,9 @@ def test_gaussian():
         },
         name='concentration',
         attrs={
-            'dx': C.dx,
-            'dy': C.dy,
-            'dt': C.dt,
             'n_grid': n_grid,
             'n_time': n_time,
             'initial_condition': initial_condition,
         },
     )
-    return result_ds - ads
-
+    return result_ds, ads
