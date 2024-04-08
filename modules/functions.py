@@ -14,12 +14,12 @@ def forward_euler(C, diffusion):
     
     array_x, array_y = np.meshgrid(C.xcoords, C.ycoords)
     array_x, array_y = array_x[1:-1, 1:-1], array_y[1:-1, 1:-1]
-
-    deriv2 = (C.now[2:, 1:-1] - C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/C.dx**2 + (C.now[1:-1, 2:] - C.now[1:-1, 1:-1] + C.now[1:-1, 0:-2])/C.dy**2
+    
+    deriv2 = (C.now[2:, 1:-1] - 2*C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/(4*C.dx**2) + (C.now[1:-1, 2:] - 2*C.now[1:-1, 1:-1] + C.now[1:-1, 0:-2])/(4*C.dy**2)
     deriv1 = diffusion.partial_x(array_x,array_y)*(C.now[2:, 1:-1] - C.now[0:-2,1:-1])/(2*C.dx) + diffusion.partial_y(array_x,array_y)*(C.now[1:-1, 2:] - C.now[1:-1, 0:-2 ])/(2*C.dy)
 
     C.next[1:-1,1:-1] = C.now[1:-1, 1:-1 ] + C.dt*(diffusion(array_x, array_y)*(deriv2) + (deriv1))  
-
+    print(C.next)
 
 
 def zero_dirichlet(C): 
@@ -71,6 +71,6 @@ def set_initial_condition_1D(C, initial_condition):
     """
     C.now[:] = initial_condition[:]
     C.store_timestep(0, "now")
-    
+
 
 
