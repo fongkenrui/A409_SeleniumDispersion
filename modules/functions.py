@@ -71,5 +71,6 @@ def set_initial_condition_1D(C, initial_condition):
     """
     C.now[:] = initial_condition[:]
     C.store_timestep(0, "now")
+    
 
 
