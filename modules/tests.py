@@ -22,14 +22,14 @@ def calculate_boundary_flux(the_ds):
     # Approximate time-integral by riemann sum
     
     cumflux = np.zeros(the_ds.n_time)
-    D = the_ds.attrs['diffusion_coefficient']
+    D = the_ds['diffusion'].values
     if type(D) == float:
         D = D*np.ones_like(the_ds.isel(t=0))
     dx = the_ds.attrs['dx']
     dy = the_ds.attrs['dy']
     dt = the_ds.attrs['dt']
     for n in range(the_ds.n_time):
-        C = the_ds.isel(t=n).values
+        C = the_ds['concentration'].isel(t=n).values
         # Left Boundary
         cl0 = C[0,:]
         cl1 = C[0,:]
