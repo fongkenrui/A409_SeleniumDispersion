@@ -84,7 +84,7 @@ def plot_mass_conservation(the_ds):
     ax.legend()
     return fig, ax
 
-def test_gaussian():
+def test_gaussian(simfunc):
     """Routine that runs the 2D CN-ADI simulation and checks the discrepancy against analytic solutions.
     """
     # Define the domain
@@ -117,7 +117,7 @@ def test_gaussian():
 
     xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords)
     analytic = kernel(xg, yg, tg)
-    result_ds = ADI(conc, diffusion, initial_condition)
+    result_ds = simfunc(conc, diffusion, initial_condition)
 
     ads = xr.DataArray(
         data=analytic,
@@ -133,7 +133,8 @@ def test_gaussian():
             'initial_condition': initial_condition,
         },
     )
-    return result_ds, ads
+    diff = (result_ds - ads)/ads
+    return diff
 
 
 def animate(ds, vmin=None, vmax=None):
@@ -146,7 +147,7 @@ def animate(ds, vmin=None, vmax=None):
     fig, ax = plt.subplots()
     x = ds.coords['x']
     y = ds.coords['y']
-    z = ds.values
+    z = ds['concentration'].values
     def animate(t):
         ax.clear()
         ax.pcolormesh(x, y, z[t], vmin=vmin, vmax=vmax, cmap='seismic')
