@@ -157,3 +157,5 @@ def animate(ds, vmin=None, vmax=None):
     plt.show()
     writergif = animation.PillowWriter(fps=30)
     return anim, writergif
+
+
