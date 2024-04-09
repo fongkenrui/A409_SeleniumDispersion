@@ -108,9 +108,7 @@ def test_gaussian(simfunc):
     X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
     initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/4)
 
-    diffusion = Analytic(lambda x, y: np.ones_like(X))
-    diffusion.set_partial_x(lambda x, y: 0*X)
-    diffusion.set_partial_y(lambda x, y: 0*Y)
+    diffusion = Interpolate(np.ones_like(X), xcoords, ycoords)
 
     def kernel(x, y, t):
         t0 = -1
@@ -118,7 +116,7 @@ def test_gaussian(simfunc):
 
     xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords, indexing='ij')
     analytic = kernel(xg, yg, tg)
-    result_ds = simfunc(conc, diffusion, initial_condition)
+    result_ds = simfunc(conc, diffusion, initial_condition)['concentration']
 
     ads = xr.DataArray(
         data=analytic,
