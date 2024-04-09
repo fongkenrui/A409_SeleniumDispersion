@@ -388,7 +388,7 @@ def ADI(
         C.store_timestep(timestep)
         C.shift()
 
-    X, Y = np.meshgrid(xcoords, ycoords)
+    X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
     ds = xr.Dataset(
         data_vars=dict(
             concentration=(['x', 'y', 't'], C.value),
