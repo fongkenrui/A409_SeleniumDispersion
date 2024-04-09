@@ -327,7 +327,7 @@ def ADI(
     C,
     diffusion,
     initial_condition,
-    BC = 'neumann',
+    BC = 'open',
 ):
     """Main routine for running 2D Crank-Nicholson with the alternating-direction implicit method.
 
@@ -388,7 +388,7 @@ def ADI(
         C.store_timestep(timestep)
         C.shift()
 
-    X, Y = np.meshgrid(xcoords, ycoords)
+    X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
     ds = xr.Dataset(
         data_vars=dict(
             concentration=(['x', 'y', 't'], C.value),
