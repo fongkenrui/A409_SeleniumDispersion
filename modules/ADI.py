@@ -327,25 +327,35 @@ def ADI(
     C,
     diffusion,
     initial_condition,
+    sources = [],
     BC = 'open',
 ):
     """Main routine for running 2D Crank-Nicholson with the alternating-direction implicit method.
 
     Args:
-        C (_type_): _description_
-        diffusion (_type_): _description_
-        initial_condition (_type_): _description_
+        C (Quantity2D): An empty Quantity2D object
+        diffusion (XYfunc): Can be either a Interpolated or Analytic child class representing the diffusion coefficient.
+        initial_condition (ndarray): A numpy ndarray containing an array of initial condition values with the same shape as C.now
+        sources (ndarray): A numpy ndarray representing a time-independent source function F(x, y) with the same shape as C.now
+        BC (string): Boundary conditions for the simulation. One of ('neumann', 'open'), with 'open' representing a zero second
+        derivative at the boundary, calculated using central difference and ghost points.
     """
     n_time = C.n_time
     n_grid = C.n_grid
     dx = C.dx
     dy = C.dy
+    dt = C.dt/2
     set_initial_condition_2D(C, initial_condition)
     xcoords = C.xcoords
     ycoords = C.ycoords
+    X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
+    if len(sources) == 0:
+        sources = np.zeros_like(X)
+    elif sources.size != X.size:
+        raise ValueError("Source array is not the same shape as domain!")
 
     # Generate matrices beforehand? Its alot of matrices to store...
-    # Maybe store in a dictionary? 
+    # Maybe store in a dictionary? Not sure if this is a major bottleneck
 
     for timestep in range(1, n_time):
         # Perform x-direction implicit
@@ -356,7 +366,7 @@ def ADI(
             B = generate_right_matrix_x(C, diffusion, y, BC=BC)
             # Explicit component
             d = generate_explicit_comp_x(C, diffusion, j, BC=BC)
-            b = B@C_i + d
+            b = B@C_i + d + sources[:, j]*dt
             try:
                 C_next = solve_banded((1,1), ab, b)
             except ValueError as e:
@@ -376,7 +386,7 @@ def ADI(
             B = generate_right_matrix_y(C, diffusion, x, BC=BC)
             # Explicit component
             d = generate_explicit_comp_y(C, diffusion, i, BC=BC)
-            b = B@C_j + d
+            b = B@C_j + d + sources[i, :]*dt
             try:
                 C_next = solve_banded((1,1), ab, b)
             except ValueError as e:
@@ -393,6 +403,7 @@ def ADI(
         data_vars=dict(
             concentration=(['x', 'y', 't'], C.value),
             diffusion=(['x', 'y'], diffusion(X, Y)),
+            sources=(['x', 'y'], sources),
         ),
         coords={
             'x': C.xcoords,
