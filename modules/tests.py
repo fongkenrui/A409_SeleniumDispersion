@@ -65,7 +65,7 @@ def integrate_concentration(the_ds):
     """
     dx = the_ds.attrs['dx']
     dy = the_ds.attrs['dy']
-    return the_ds.sum(dim=('x', 'y')).values*(dy*dx)
+    return the_ds['concentration'].sum(dim=('x', 'y')).values*(dy*dx)
 
 def plot_mass_conservation(the_ds):
     """Plots total pollutant concentration, time-integrated flux, and the sum of both, normalized
@@ -82,6 +82,7 @@ def plot_mass_conservation(the_ds):
     ax.plot(time, totalconc/totalconc[0], label='mass in boundary')
     ax.plot(time, (totalconc + cumflux)/totalconc[0], label='total mass')
     ax.legend()
+    ax.set_title("Mass Conservation Test")
     return fig, ax
 
 def test_gaussian(simfunc):
@@ -101,23 +102,21 @@ def test_gaussian(simfunc):
         trange,
     )
 
-    diffusion = Analytic(lambda x, y: 1)
-    diffusion.set_partial_x(lambda x, y: 0)
-    diffusion.set_partial_y(lambda x, y: 0)
-
     xcoords = conc.xcoords
     ycoords = conc.ycoords
     tcoords = conc.tcoords
-    X, Y = np.meshgrid(xcoords, ycoords)
+    X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
     initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/4)
+
+    diffusion = Interpolate(np.ones_like(X), xcoords, ycoords)
 
     def kernel(x, y, t):
         t0 = -1
         return (1/(4*np.pi*(t-t0)))*np.exp(-(x**2 + y**2)/(4*(t-t0)))
 
-    xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords)
+    xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords, indexing='ij')
     analytic = kernel(xg, yg, tg)
-    result_ds = simfunc(conc, diffusion, initial_condition)
+    result_ds = simfunc(conc, diffusion, initial_condition)['concentration']
 
     ads = xr.DataArray(
         data=analytic,
@@ -135,28 +134,4 @@ def test_gaussian(simfunc):
     )
     diff = (result_ds - ads)/ads
     return diff
-
-
-def animate(ds, vmin=None, vmax=None):
-    if not vmin:
-        vmin = ds.min()
-    if not vmax:
-        vmax = ds.max()
-
-    n_time = ds.attrs['n_time']
-    fig, ax = plt.subplots()
-    x = ds.coords['x']
-    y = ds.coords['y']
-    z = ds['concentration'].values
-    def animate(t):
-        ax.clear()
-        ax.pcolormesh(x, y, z[t], vmin=vmin, vmax=vmax, cmap='seismic')
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-    
-    anim = animation.FuncAnimation(fig, animate, frames = n_time, interval=1, repeat=True)
-    plt.show()
-    writergif = animation.PillowWriter(fps=30)
-    return anim, writergif
-
 
