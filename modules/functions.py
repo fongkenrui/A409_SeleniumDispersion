@@ -11,7 +11,7 @@ def forward_euler(C, diffusion, sources):
     returns:
         dC_dt (ArrayLike): A numpy ndarray for the interior points of the grid (size (N-2) by (N-2))
     """
-    
+
     array_x, array_y = np.meshgrid(C.xcoords, C.ycoords, indexing='ij')
     array_x, array_y = array_x[1:-1, 1:-1], array_y[1:-1, 1:-1]
 
@@ -39,17 +39,15 @@ def zero_dirichlet(C):
 
 
 
-def neumann(C): # In hindsight, this kind of neumann conditions should be more accurate
+def neumann(C): 
     """Performs in-place modification of arrays stored in the C Quantity object to enforce boundary conditions.
     Neumann BCs are enforced by setting boundary fluxes to be equal to that of neighbouring interior points.
 
     Args:
         C (Quantity): A Quantity object representing the concentration C(x, y, t)
     """
-
-
     return
-
+    
 
 def set_initial_condition_2D(C, initial_condition):
     """Generically sets the initial condition at C.now for a 2D spatial grid. For different time-stepping schemes custom initial_condition

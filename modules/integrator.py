@@ -4,7 +4,7 @@ import numpy as np
 from .functions import forward_euler, zero_dirichlet, set_initial_condition_2D
 
 
-def forward_euler_final(C, diffusion, initial_condition, sources):
+def forward_euler_final(C, diffusion, initial_condition, sources=[]):
     """_summary_
     
     Args:
@@ -18,6 +18,8 @@ def forward_euler_final(C, diffusion, initial_condition, sources):
     Returns:
         DataSet: xarray dataset containing simulation attributes and results
     """
+    if len(sources) == 0:
+        sources = np.zeros_like(initial_condition)
 
     set_initial_condition_2D(C, initial_condition)
     
@@ -34,6 +36,7 @@ def forward_euler_final(C, diffusion, initial_condition, sources):
         data_vars=dict(
             concentration=(['x', 'y', 't'], C.value),
             diffusion=(['x', 'y'], diffusion(X, Y)),
+            sources=(['x', 'y'], sources),
         ),
         coords={
             'x': C.xcoords,

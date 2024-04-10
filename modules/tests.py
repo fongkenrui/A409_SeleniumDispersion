@@ -101,7 +101,7 @@ def test_gaussian(simfunc):
     xrange = (-10, 10)
     yrange = (-10, 10)
     trange=(0, 1)
-    n_grid = 50
+    n_grid = 100
     n_time = 500
     conc = Quantity2D(
         n_grid,
@@ -115,12 +115,12 @@ def test_gaussian(simfunc):
     ycoords = conc.ycoords
     tcoords = conc.tcoords
     X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
-    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/4)
+    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/1)
 
     diffusion = Interpolate(np.ones_like(X), xcoords, ycoords)
 
     def kernel(x, y, t):
-        t0 = -1
+        t0 = -0.25
         return (1/(4*np.pi*(t-t0)))*np.exp(-(x**2 + y**2)/(4*(t-t0)))
 
     xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords, indexing='ij')

@@ -328,7 +328,7 @@ def ADI(
     diffusion,
     initial_condition,
     sources = [],
-    BC = 'open',
+    BC = 'neumann',
 ):
     """Main routine for running 2D Crank-Nicholson with the alternating-direction implicit method.
 
