@@ -12,7 +12,7 @@ def forward_euler(C, diffusion):
         dC_dt (ArrayLike): A numpy ndarray for the interior points of the grid (size (N-2) by (N-2))
     """
     
-    array_x, array_y = np.meshgrid(C.xcoords, C.ycoords)
+    array_x, array_y = np.meshgrid(C.xcoords, C.ycoords, indexing='ij')
     array_x, array_y = array_x[1:-1, 1:-1], array_y[1:-1, 1:-1]
 
     deriv2 = (C.now[2:, 1:-1] - C.now[1:-1, 1:-1] + C.now[0:-2,1:-1])/C.dx**2 + (C.now[1:-1, 2:] - C.now[1:-1, 1:-1] + C.now[1:-1, 0:-2])/C.dy**2
