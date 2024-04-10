@@ -73,9 +73,7 @@ def integrate_sources(the_ds):
     return the_ds['sources'].sum(dim=('x', 'y')).values*(dy*dx) * time
 
 def plot_mass_conservation(the_ds):
-    """Plots total pollutant concentration, time-integrated boundary flux, source influx, and conserved mass
-    normalized by the sum of conserved mass at t=0 + inflow. Conserved mass = total concentration + time-integrated
-    boundary flux.
+    """Plots total pollutant concentration
 
     Args:
         the_ds (_type_): _description_
@@ -84,16 +82,16 @@ def plot_mass_conservation(the_ds):
     cumflux = calculate_boundary_flux(the_ds)
     totalconc = integrate_concentration(the_ds)
     inflow = integrate_sources(the_ds)
-    conserved_mass = totalconc + cumflux 
+    conserved_mass = totalconc + cumflux - inflow
     fig, ax = plt.subplots()
-    ax.plot(time, cumflux/(conserved_mass[0] + inflow), label='cumulative boundary flux')
-    ax.plot(time, totalconc/(conserved_mass[0] + inflow), label='mass in boundary')
-    ax.plot(time, inflow/(conserved_mass[0] + inflow), label='cumulative inflow')
-    ax.plot(time, conserved_mass/(conserved_mass[0] + inflow), label='total mass')
+    ax.plot(time, cumflux, label='cumulative boundary flux')
+    ax.plot(time, totalconc, label='mass in boundary')
+    ax.plot(time, inflow, label='cumulative inflow')
+    ax.plot(time, conserved_mass, label='conserved mass')
     ax.set_xlabel("time")
     ax.set_ylabel("fractional mass")
     ax.legend()
-    ax.set_title("Mass fraction scaled by initial conserved mass + inflow")
+    ax.set_title("Conserved Mass = Initial - Inflow + Outflow")
     return fig, ax
 
 def test_gaussian(simfunc):
