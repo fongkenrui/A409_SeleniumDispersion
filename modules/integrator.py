@@ -4,7 +4,7 @@ import numpy as np
 from .functions import forward_euler, zero_dirichlet, set_initial_condition_2D
 
 
-def forward_euler_final(C, diffusion, initial_condition):
+def forward_euler_final(C, diffusion, initial_condition, sources):
     """_summary_
     
     Args:
@@ -23,7 +23,7 @@ def forward_euler_final(C, diffusion, initial_condition):
     
     for t in np.arange(1, C.n_time):
 
-        forward_euler(C, diffusion)
+        forward_euler(C, diffusion, sources)
         zero_dirichlet(C) #figure out the boundary condtions 
 
         C.store_timestep(t)
