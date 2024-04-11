@@ -7,3 +7,4 @@ test_commit.ipynb
 *.nc
 *.ipynb
 *.ipynb
+/plots
