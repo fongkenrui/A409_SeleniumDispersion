@@ -387,6 +387,10 @@ def ADI(
                 print(d)
                 raise ValueError
             C.next[:, j] = C_next
+        # Deal with Dirichlet boundary conditions in the explicit edges
+        if BC == 'dirichlet':
+            C.next[:, 0] = 0*C.next[:, 0]
+            C.next[:, -1] = 0*C.next[:, -1]
         # Skip over saving the half-timestep results
         C.shift()
 
@@ -406,6 +410,10 @@ def ADI(
                 print(B)
                 print(d)
             C.next[i, :] = C_next
+        # Deal with Dirichlet boundary conditions in the explicit edges
+        if BC == 'dirichlet':
+            C.next[0, :] = 0*C.next[0, :]
+            C.next[-1, :] = 0*C.next[-1, :]
 
         C.store_timestep(timestep)
         C.shift()
