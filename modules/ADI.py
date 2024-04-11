@@ -49,7 +49,7 @@ def generate_left_matrix_x(C, diffusion, y, BC): #TODO: Memoization tradeoff? Wi
     # Set boundary conditions
     if BC == 'neumann':
         u[1] = -2*r1(x_coords[0], y)
-        d[0] = - D2(x_coords[0], y)
+        d[0] = D2(x_coords[0], y)
         d[-1] = D2(x_coords[-1], y)
         l[-2] = -2*r1(x_coords[-1], y)
     elif BC == 'open':
@@ -105,7 +105,7 @@ def generate_left_matrix_y(C, diffusion, x, BC):
     # Set boundary conditions
     if BC == 'neumann':
         u[1] = -2*r1(x, y_coords[0])
-        d[0] = - D2(x, y_coords[0])
+        d[0] = D2(x, y_coords[0])
         d[-1] = D2(x, y_coords[-1])
         l[-2] = -2*r1(x, y_coords[-1])
     elif BC == 'open':
