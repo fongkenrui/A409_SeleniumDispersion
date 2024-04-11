@@ -115,12 +115,12 @@ def test_gaussian(simfunc, BC='neumann'):
     ycoords = conc.ycoords
     tcoords = conc.tcoords
     X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
-    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/1)
+    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/4)
 
     diffusion = Interpolate(np.ones_like(X), xcoords, ycoords)
 
     def kernel(x, y, t):
-        t0 = -0.25
+        t0 = -1
         return (1/(4*np.pi*(t-t0)))*np.exp(-(x**2 + y**2)/(4*(t-t0)))
 
     xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords, indexing='ij')
