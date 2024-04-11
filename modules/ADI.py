@@ -57,6 +57,11 @@ def generate_left_matrix_x(C, diffusion, y, BC): #TODO: Memoization tradeoff? Wi
         d[0] = 1 + 2*r2(x_coords[0], y) 
         d[-1] = 1 - 2*r2(x_coords[-1], y)
         l[-2] = 2*r2(x_coords[-1], y)
+    elif BC == 'dirichlet':
+        u[1] = 0
+        d[0] = 1
+        d[-1] = 1
+        l[-2] = 0
     # Stack into a banded form
     ab = np.stack((u, d, l))
     return ab
@@ -108,6 +113,11 @@ def generate_left_matrix_y(C, diffusion, x, BC):
         d[0] = 1 + 2*r2(x, y_coords[0])
         d[-1] = 1 - 2*r2(x, y_coords[-1])
         l[-2] = 2*r2(x, y_coords[-1])
+    elif BC == 'dirichlet':
+        u[1] = 0
+        d[0] = 1
+        d[-1] = 1
+        l[-2] = 0
     # Stack into a banded form
     ab = np.stack((u, d, l))
     return ab
@@ -149,7 +159,6 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         x = xcoords[i]
         matrix[i, i-1:i+2] = np.array([D1(x, y), D2(x, y), D3(x, y)])
 
-    # Set neumann boundary conditions; C1 - C0 = 0 by leaving 1st and last row empty
     if BC == 'Neumann':
         matrix[0, 0] = D2(xcoords[0], y)
         matrix[0, 1] = 2*r1(xcoords[0], y)
@@ -162,10 +171,7 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         matrix[-1, -2] = -2*r2(xcoords[-1], y)
         matrix[-1, -1] = 1 + 2*r2(xcoords[-1], y)
         return matrix
-
-    else:
-        matrix[0, 1:3] = np.array([-1, 1])
-        matrix[-1, -3:-1] = np.array([-1, 1])
+    elif BC == 'dirichlet':
         return matrix
 
 def generate_right_matrix_y(C, diffusion, x, BC): 
@@ -217,9 +223,7 @@ def generate_right_matrix_y(C, diffusion, x, BC):
         matrix[-1, -2] = -2*r2(x, ycoords[-1])
         matrix[-1, -1] = 1 + 2*r2(x, ycoords[-1])
         return matrix
-    else:
-        matrix[0, 1:3] = np.array([-1, 1])
-        matrix[-1, -3:-1] = np.array([-1, 1])
+    elif BC == 'dirichlet':
         return matrix
 
 def generate_explicit_comp_x(C, diffusion, j, BC):
@@ -251,6 +255,8 @@ def generate_explicit_comp_x(C, diffusion, j, BC):
             C_jp1 = C.now[:, j+1]
             C_j = C.now[:, j]
             return dt/(dy) * (grad_diff_vec * (C_jp1 - C_j) )
+        elif BC == 'dirichlet':
+            return 0
 
     elif j == (n_grid - 1):
         if BC == 'neumann':
@@ -261,6 +267,8 @@ def generate_explicit_comp_x(C, diffusion, j, BC):
             C_j = C.now[:, j]
             C_jm1 = C.now[:, j-1]
             return dt/(dy) * (grad_diff_vec * (C_j - C_jm1) )
+        elif BC == 'dirichlet':
+            return 0
 
     else:
         C_jp1 = C.now[:, j+1] 
@@ -301,6 +309,8 @@ def generate_explicit_comp_y(C, diffusion, i, BC):
             C_ip1 = C.now[i+1,:] 
             C_i = C.now[i,:]
             return dt/(dx) * (grad_diff_vec * (C_ip1 - C_i) )
+        elif BC == 'dirichlet':
+            return 0
 
     elif i == (n_grid - 1):
         if BC == 'neumann':
@@ -311,6 +321,8 @@ def generate_explicit_comp_y(C, diffusion, i, BC):
             C_i = C.now[i,:]
             C_im1 = C.now[i-1,:]
             return dt/(dx) * (grad_diff_vec * (C_i - C_im1) )
+        elif BC == 'dirichlet':
+            return 0
 
     else:
         C_ip1 = C.now[i+1,:] 
