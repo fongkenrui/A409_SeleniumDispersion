@@ -32,23 +32,22 @@ def calculate_boundary_flux(the_ds):
         C = the_ds['concentration'].isel(t=n).values
         # Left Boundary
         cl0 = C[0,:]
-        cl1 = C[0,:]
-        Jl = - D[0, :] @ (cl0 - cl1)*(dy/dx)
+        cl1 = C[1,:]
+        Jl = D[0, :] @ (cl1 - cl0)*(dy/dx)
         # Right Boundary
         cr0 = C[-2,:]
         cr1 = C[-1,:]
-        Jr = - D[-1, :] @ (cr0 - cr1)*(dy/dx)
+        Jr = D[-1, :] @ (cr0 - cr1)*(dy/dx)
         # Top Boundary
         ct0 = C[:,0]
         ct1 = C[:, 1]
-        Jt = - D[:, 0] @ (ct0 - ct1)*(dx/dy)
+        Jt = D[:, 0] @ (ct1 - ct0)*(dx/dy)
         # Bottom Boundary
         cb0 = C[:,-2]
         cb1 = C[:,-1]
-        Jb = - D[:, 0] @ (cb1 - cb0)*(dx/dy)
+        Jb = D[:, 0] @ (cb0 - cb1)*(dx/dy)
 
         J_current = Jl + Jr + Jt + Jb
-        print(J_current)
         if n == 0:
             cumflux[n] = J_current*dt
         else:
@@ -67,9 +66,14 @@ def integrate_concentration(the_ds):
     dy = the_ds.attrs['dy']
     return the_ds['concentration'].sum(dim=('x', 'y')).values*(dy*dx)
 
+def integrate_sources(the_ds):
+    dx = the_ds.attrs['dx']
+    dy = the_ds.attrs['dy']
+    time = the_ds.coords['t'].values
+    return the_ds['sources'].sum(dim=('x', 'y')).values*(dy*dx) * time
+
 def plot_mass_conservation(the_ds):
-    """Plots total pollutant concentration, time-integrated flux, and the sum of both, normalized
-    by initial total concentration.
+    """Plots total pollutant concentration
 
     Args:
         the_ds (_type_): _description_
@@ -77,12 +81,17 @@ def plot_mass_conservation(the_ds):
     time = the_ds.coords['t']
     cumflux = calculate_boundary_flux(the_ds)
     totalconc = integrate_concentration(the_ds)
+    inflow = integrate_sources(the_ds)
+    conserved_mass = totalconc + cumflux - inflow
     fig, ax = plt.subplots()
-    ax.plot(time, cumflux/totalconc[0], label='boundary flux')
-    ax.plot(time, totalconc/totalconc[0], label='mass in boundary')
-    ax.plot(time, (totalconc + cumflux)/totalconc[0], label='total mass')
+    ax.plot(time, cumflux, label='cumulative boundary flux')
+    ax.plot(time, totalconc, label='mass in boundary')
+    ax.plot(time, inflow, label='cumulative inflow')
+    ax.plot(time, conserved_mass, label='conserved mass')
+    ax.set_xlabel("time")
+    ax.set_ylabel("fractional mass")
     ax.legend()
-    ax.set_title("Mass Conservation Test")
+    ax.set_title("Conserved Mass = Initial - Inflow + Outflow")
     return fig, ax
 
 def test_gaussian(simfunc):
@@ -92,7 +101,7 @@ def test_gaussian(simfunc):
     xrange = (-10, 10)
     yrange = (-10, 10)
     trange=(0, 1)
-    n_grid = 50
+    n_grid = 100
     n_time = 500
     conc = Quantity2D(
         n_grid,
@@ -106,12 +115,12 @@ def test_gaussian(simfunc):
     ycoords = conc.ycoords
     tcoords = conc.tcoords
     X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
-    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/4)
+    initial_condition =  (1/(4*np.pi))*np.exp(- (X**2 + Y**2)/1)
 
     diffusion = Interpolate(np.ones_like(X), xcoords, ycoords)
 
     def kernel(x, y, t):
-        t0 = -1
+        t0 = -0.25
         return (1/(4*np.pi*(t-t0)))*np.exp(-(x**2 + y**2)/(4*(t-t0)))
 
     xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords, indexing='ij')
@@ -133,5 +142,6 @@ def test_gaussian(simfunc):
         },
     )
     diff = (result_ds - ads)/ads
+    diff.rename('relative error')
     return diff
 
