@@ -94,15 +94,15 @@ def plot_mass_conservation(the_ds):
     ax.set_title("Conserved Mass = Initial - Inflow + Outflow")
     return fig, ax
 
-def test_gaussian(simfunc):
+def test_gaussian(simfunc, BC='neumann'):
     """Routine that runs the 2D CN-ADI simulation and checks the discrepancy against analytic solutions.
     """
     # Define the domain
     xrange = (-10, 10)
     yrange = (-10, 10)
-    trange=(0, 1)
-    n_grid = 100
-    n_time = 500
+    trange=(0, 10)
+    n_grid = 50
+    n_time = 1000
     conc = Quantity2D(
         n_grid,
         n_time,
@@ -125,7 +125,7 @@ def test_gaussian(simfunc):
 
     xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords, indexing='ij')
     analytic = kernel(xg, yg, tg)
-    result_ds = simfunc(conc, diffusion, initial_condition)['concentration']
+    result_ds = simfunc(conc, diffusion, initial_condition, BC=BC)['concentration']
 
     ads = xr.DataArray(
         data=analytic,
@@ -141,7 +141,5 @@ def test_gaussian(simfunc):
             'initial_condition': initial_condition,
         },
     )
-    diff = (result_ds - ads)/ads
-    diff.rename('relative error')
-    return diff
+    return result_ds, ads
 
