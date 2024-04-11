@@ -159,7 +159,7 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         x = xcoords[i]
         matrix[i, i-1:i+2] = np.array([D1(x, y), D2(x, y), D3(x, y)])
 
-    if BC == 'Neumann':
+    if BC == 'neumann':
         matrix[0, 0] = D2(xcoords[0], y)
         matrix[0, 1] = 2*r1(xcoords[0], y)
         matrix[-1, -2] = 2*r1(xcoords[-1], y)
@@ -173,6 +173,8 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         return matrix
     elif BC == 'dirichlet':
         return matrix
+    else:
+        raise ValueError("Invalid Boundary Type")
 
 def generate_right_matrix_y(C, diffusion, x, BC): 
     """Generates the matrix B which operates on C_i in the matrix equation $A{C_i+1} = B{C_i} + d$
@@ -225,6 +227,8 @@ def generate_right_matrix_y(C, diffusion, x, BC):
         return matrix
     elif BC == 'dirichlet':
         return matrix
+    else:
+        raise ValueError("Invalid Boundary Type")
 
 def generate_explicit_comp_x(C, diffusion, j, BC):
     """Generates the vector d in the matrix equation $A{C_i+1} = B{C_i} + d$
