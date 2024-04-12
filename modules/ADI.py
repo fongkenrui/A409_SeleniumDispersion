@@ -7,7 +7,7 @@ import copy
 from .classes import Quantity1D, Quantity2D
 from .functions import set_initial_condition_2D
 from scipy.linalg import solve_banded
-from scipy.linalg.lapack import cgtsv 
+from scipy.linalg.lapack import cgtsv
 
 ## Matrix Functions
 
@@ -372,6 +372,15 @@ def ADI(
 
     # Generate matrices beforehand? Its alot of matrices to store...
     # Maybe store in a dictionary? Not sure if this is a major bottleneck
+
+    # Modify the initial condition to ensure that it respects the Dirichlet Boundary condition
+    # This is necessary due to how explicit components are calculated
+
+    if BC == 'dirichlet':
+        C.now[0, : ] = 0 
+        C.now[-1, : ] = 0
+        C.now[ : ,0] = 0
+        C.now[ : ,-1] = 0
 
     for timestep in range(1, n_time):
         # Perform x-direction implicit
