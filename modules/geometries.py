@@ -36,12 +36,14 @@ def square_2c(a,b):
 def circular(a,b):
     """Return a soil matrix of a radiative pattern with two types of soils"""
     
-    matrix = np.array([[a,a,a,a,a,a,a],
-           [a,a,b,b,b,a,a],
-           [a,b,b,b,b,b,a],
-           [a,b,b,b,b,b,a],
-           [a,a,b,b,b,a,a],
-           [a,a,a,a,a,a,a]])
+    matrix = a*np.ones((10, 10))
+    matrix[2:-2,2:-2] = np.array([
+        [a,a,a,a,a,a],
+        [a,a,b,b,a,a],
+        [a,b,b,b,b,a],
+        [a,b,b,b,b,a],
+        [a,a,b,b,a,a],
+        [a,a,a,a,a,a]])
     return matrix
 
 
