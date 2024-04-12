@@ -22,6 +22,12 @@ def forward_euler_final(C, diffusion, initial_condition, sources=[], BC=None):
         sources = np.zeros_like(initial_condition)
 
     set_initial_condition_2D(C, initial_condition)
+
+    # Enforce dirichlet BCs on the initial condition
+    C.now[0, : ] = 0 
+    C.now[-1, : ] = 0
+    C.now[ : ,0] = 0
+    C.now[ : ,-1] = 0
     
     for t in np.arange(1, C.n_time):
 
@@ -31,7 +37,7 @@ def forward_euler_final(C, diffusion, initial_condition, sources=[], BC=None):
         C.store_timestep(t)
         C.shift()
     
-    X, Y = np.meshgrid(C.xcoords, C.ycoords)
+    X, Y = np.meshgrid(C.xcoords, C.ycoords, indexing='ij')
     ds = xr.Dataset(
         data_vars=dict(
             concentration=(['x', 'y', 't'], C.value),
