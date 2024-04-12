@@ -132,7 +132,7 @@ class Interpolate(XYfunc):
         cbar = fig.colorbar(cf, ax=ax)
         cbar.formatter.set_powerlimits((0, 0))
         cbar.set_label('Diffusion coefficient (m$^2$ s$^{-1}$)', rotation=270, labelpad=15)
-        plt.show()
+        return fig, ax
 
 
 class Analytic(XYfunc):

@@ -1,101 +1,90 @@
 import numpy as np 
 
-"""Soil Geometries for two types of soil. a and b are soil types"""
-
-#triangular matrix 
-
-def traingle_2(a,b): 
+def triangle_2(a,b):
+    """Return a soil matrix of a triangle pattern"""
     
     a = np.full((10, 10), 0.02)  
     b = np.tril(a)
-    matrix = a+b
-    
+    matrix = a + b
     return matrix
 
 
-#Square matrices for two types of soil
-
-#upper corner 
-def square_2a(a,b):
+def square_upper_corner(a,b):
+    """Return a soil matrix of a square pattern with an upper corner"""
     
-    diffarr = a*np.ones((10, 10))
-    diffarr[:5,:5] = b # Vary along x; partial_x should be constant
-    
-    return diffarr
-
-#horizontal division 
-def square_2b(a,b):
-    
-    diffarr = a*np.ones((10, 10))
-    diffarr[:5,:] = b # Vary along x; partial_x should be constant
-    return diffarr
-
-#vertical division 
-def square_2c(a,b):
-    
-    diffarr = a*np.ones((10, 10))
-    diffarr[:,:5] = b # Vary along x; partial_x should be constant
-    return diffarr
-    
-    
+    matrix = a*np.ones((10, 10))
+    matrix[:5,:5] = b
+    return matrix
 
 
-# circular symmetry 
+def square_vertical_2layers(a,b):
+    """Return a soil matrix of a square pattern with vertical division"""
+    
+    matrix = a*np.ones((10, 10))
+    matrix[:5,:] = b
+    return matrix
+
+
+def square_horizontal_2layers(a,b):
+    """Return a soil matrix of a square pattern with horizontal division"""
+    
+    matrix = a*np.ones((10, 10))
+    matrix[:,:5] = b
+    return matrix
+
 
 def circular(a,b):
+    """Return a soil matrix of a radiative pattern with two types of soils"""
     
-    arr = np.array([[a,a,a,a,a,a,a],
-           [a,a,b,b,b,a,a],
-           [a,b,b,b,b,b,a],
-           [a,b,b,b,b,b,a],
-           [a,a,b,b,b,a,a],
-           [a,a,a,a,a,a,a]])
-    
-    return arr
+    matrix = a*np.ones((10, 10))
+    matrix[2:-2,2:-2] = np.array([
+        [a,a,a,a,a,a],
+        [a,a,b,b,a,a],
+        [a,b,b,b,b,a],
+        [a,b,b,b,b,a],
+        [a,a,b,b,a,a],
+        [a,a,a,a,a,a]])
+    return matrix
 
-
-
-'matrices for 3 soil types: a,b,c'
-
-#square matrices 
 
 def square_layers(a,b,c): 
+    """Return a soil matrix of a squared layer pattern"""
     
-    arr = np.array([[a,a,a,a,a,a],
+    matrix = np.array([[a,a,a,a,a,a],
                     [a,b,b,b,b,a],
                     [a,b,c,c,b,a],
                     [a,b,c,c,b,a],
                     [a,b,b,b,b,a],
                     [a,a,a,a,a,a]])
-    return arr
+    return matrix
 
 
-def square_3a(a,b,c):
+def square_horizontal_3layers(a,b,c):
+    """Return a soil matrix of a square pattern with three horizontal layers"""
     
-    diffarr = a*np.ones((6, 6))
-    diffarr[:, 2:4] = b
-    diffarr[:, 4:] = c
-    
-    return diffarr
-    
+    matrix = a*np.ones((6, 6))
+    matrix[:, 2:4] = b
+    matrix[:, 4:] = c
+    return matrix
 
 
-def square_3b(a,b,c):
+def square_vertical_3layers(a,b,c):
+    """Return a soil matrix of a square pattern with three vertical layers"""
     
-    diffarr = a*np.ones((6, 6))
-    diffarr[2:4, :] = b
-    diffarr[4:, :] = c
+    matrix = a*np.ones((6, 6))
+    matrix[2:4, :] = b
+    matrix[4:, :] = c
+    return matrix
     
-    return diffarr    
-
 
 def circular_layers(a,b,c):
+    """Return a soil matrix of a radiative pattern with three types of soils"""
     
-        arr = np.array([[a,a,a,a,a,a],
-                        [a,a,b,b,a,a],
-                        [a,b,c,c,b,a],
-                        [a,b,c,c,b,a],
-                        [a,a,b,b,b,a],
-                        [a,a,a,a,a,a]])
-        return arr
- 
+    matrix = np.array([
+        [a,a,a,a,a,a],
+        [a,a,b,b,a,a],
+        [a,b,c,c,b,a],
+        [a,b,c,c,b,a],
+        [a,a,b,b,b,a],
+        [a,a,a,a,a,a]])
+    return matrix
