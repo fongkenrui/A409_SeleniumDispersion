@@ -30,9 +30,17 @@ def plot_soil_geometry(conc, pattern_func, args, D_background):
 def triangle_2(a,b):
     """Return a soil matrix of a triangle pattern"""
     
-    a = np.full((10, 10), 0.02)  
-    b = np.tril(a)
-    matrix = a + b
+    a_matrix = np.full((10, 10), a)  
+    lower_triangle = np.tril(a_matrix)
+    
+    b_matrix = np.full((10, 10), b) 
+    upper_triangle = np.triu(b_matrix)
+    
+    matrix = lower_triangle + upper_triangle
+    
+    for i in range(len(matrix)):
+        matrix[i, i] = min(upper_triangle[i, i], lower_triangle[i, i])
+
     return matrix
 
 
