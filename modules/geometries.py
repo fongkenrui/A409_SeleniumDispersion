@@ -1,8 +1,8 @@
 import numpy as np 
 from modules.classes import Interpolate
 
-def plot_soil_geometry(conc, pattern_func, args, D_background):
-    """Display soil geometry"""
+def create_soil_geometry(conc, pattern_func, args, D_background):
+    """Create soil geometry baased on a seed soil matrix"""
     n_grid_pt = 10
 
     seed_matrix = pattern_func(*args)
@@ -22,6 +22,13 @@ def plot_soil_geometry(conc, pattern_func, args, D_background):
     yint = np.linspace(-0.5 * conc.n_grid * conc.dy, 0.5 * conc.n_grid * conc.dy, n_grid_pt)
     diffusion = Interpolate(seed_matrix, xint, yint, s=0)
     
+    return diffusion
+
+
+def plot_soil_geometry(conc, pattern_func, args, D_background):
+    """Display soil geometry"""
+
+    diffusion = create_soil_geometry(conc, pattern_func, args, D_background)
     fig, ax = diffusion.plot_color_map(func='func')
     
     return fig, ax
