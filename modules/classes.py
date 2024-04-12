@@ -88,9 +88,9 @@ class Interpolate(XYfunc):
         return self.partial_y(x, y)
         #return 0.5*self.dy*(self.func(x, y+self.dy) - self.func(x, y-self.dy))
 
-    def plot_2D(self, func='func'):
+    def interpolate_with_func(self, func='func'):
         """
-        Convenience function to visualize the function on a 2-D plot
+        Return interpolated values using func
         """
         X, Y = np.meshgrid(self.xcoords, self.ycoords)
         if func == 'func':
@@ -101,6 +101,15 @@ class Interpolate(XYfunc):
             Z = self.partial_y(X, Y)
         else:
             raise ValueError("func must be one of 'func', 'partial_x', 'partial_y.")
+            
+        return X, Y, Z
+        
+    def plot_2D(self, func='func'):
+        """
+        Convenience function to visualize the function on a 2-D plot
+        """
+        X, Y, Z = self.interpolate_with_func(func)
+        
         fig = plt.figure()
         ax = plt.axes(projection='3d')
         ax.plot_surface(X, Y, Z)
@@ -108,6 +117,23 @@ class Interpolate(XYfunc):
         ax.set_ylabel('y')
         ax.set_zlabel('z')
         return fig, ax
+    
+    def plot_color_map(self, func='func'):
+        """
+        Display a clour map of diffusion coefficients created by interpolation
+        """
+        X, Y, Z = self.interpolate_with_func(func)
+
+        fig, ax = plt.subplots(figsize=(5,5), subplot_kw = {'aspect':1})
+        ax.contourf(X,Y,Z)
+        ax.set_xlabel('Distance from the source in x direction (m)')
+        ax.set_ylabel('Distance from the source in y direction (m)')
+        cf = ax.contourf(X,Y,Z, cmap=plt.cm.get_cmap('gist_earth_r'))
+        cbar = fig.colorbar(cf, ax=ax)
+        cbar.formatter.set_powerlimits((0, 0))
+        cbar.set_label('Diffusion coefficient (m$^2$ s$^{-1}$)', rotation=270, labelpad=15)
+        plt.show()
+
 
 class Analytic(XYfunc):
     """Class for defining an analytic coefficient function f(x, y). The stored
