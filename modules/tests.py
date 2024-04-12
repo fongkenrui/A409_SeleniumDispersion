@@ -32,23 +32,22 @@ def calculate_boundary_flux(the_ds):
         C = the_ds['concentration'].isel(t=n).values
         # Left Boundary
         cl0 = C[0,:]
-        cl1 = C[0,:]
-        Jl = - D[0, :] @ (cl0 - cl1)*(dy/dx)
+        cl1 = C[1,:]
+        Jl = D[0, :] @ (cl1 - cl0)*(dy/dx)
         # Right Boundary
         cr0 = C[-2,:]
         cr1 = C[-1,:]
-        Jr = - D[-1, :] @ (cr0 - cr1)*(dy/dx)
+        Jr = D[-1, :] @ (cr0 - cr1)*(dy/dx)
         # Top Boundary
         ct0 = C[:,0]
         ct1 = C[:, 1]
-        Jt = - D[:, 0] @ (ct0 - ct1)*(dx/dy)
+        Jt = D[:, 0] @ (ct1 - ct0)*(dx/dy)
         # Bottom Boundary
         cb0 = C[:,-2]
         cb1 = C[:,-1]
-        Jb = - D[:, 0] @ (cb1 - cb0)*(dx/dy)
+        Jb = D[:, 0] @ (cb0 - cb1)*(dx/dy)
 
         J_current = Jl + Jr + Jt + Jb
-        print(J_current)
         if n == 0:
             cumflux[n] = J_current*dt
         else:
@@ -67,9 +66,14 @@ def integrate_concentration(the_ds):
     dy = the_ds.attrs['dy']
     return the_ds['concentration'].sum(dim=('x', 'y')).values*(dy*dx)
 
-def plot_mass_conservation(the_ds):
-    """Plots total pollutant concentration, time-integrated flux, and the sum of both, normalized
-    by initial total concentration.
+def integrate_sources(the_ds):
+    dx = the_ds.attrs['dx']
+    dy = the_ds.attrs['dy']
+    time = the_ds.coords['t'].values
+    return the_ds['sources'].sum(dim=('x', 'y')).values*(dy*dx) * time
+
+def plot_mass_conservation(the_ds, return_ds=True):
+    """Plots total pollutant concentration
 
     Args:
         the_ds (_type_): _description_
@@ -77,23 +81,31 @@ def plot_mass_conservation(the_ds):
     time = the_ds.coords['t']
     cumflux = calculate_boundary_flux(the_ds)
     totalconc = integrate_concentration(the_ds)
+    inflow = integrate_sources(the_ds)
+    conserved_mass = totalconc + cumflux - inflow
     fig, ax = plt.subplots()
-    ax.plot(time, cumflux/totalconc[0], label='boundary flux')
-    ax.plot(time, totalconc/totalconc[0], label='mass in boundary')
-    ax.plot(time, (totalconc + cumflux)/totalconc[0], label='total mass')
+    ax.plot(time, cumflux, label='cumulative boundary flux')
+    ax.plot(time, totalconc, label='mass in boundary')
+    ax.plot(time, inflow, label='cumulative inflow')
+    ax.plot(time, conserved_mass, label='conserved mass')
+    ax.set_xlabel("time")
+    ax.set_ylabel("concentration")
     ax.legend()
-    ax.set_title("Mass Conservation Test")
-    return fig, ax
+    ax.set_title("Conserved Mass = Initial - Inflow + Outflow")
+    if return_ds:
+        return cumflux, totalconc, inflow, conserved_mass
+    else:
+        return fig, ax
 
-def test_gaussian(simfunc):
+def test_gaussian(simfunc, BC='neumann'):
     """Routine that runs the 2D CN-ADI simulation and checks the discrepancy against analytic solutions.
     """
     # Define the domain
     xrange = (-10, 10)
     yrange = (-10, 10)
-    trange=(0, 1)
+    trange=(0, 10)
     n_grid = 50
-    n_time = 500
+    n_time = 1000
     conc = Quantity2D(
         n_grid,
         n_time,
@@ -116,7 +128,7 @@ def test_gaussian(simfunc):
 
     xg, yg, tg = np.meshgrid(xcoords, ycoords, tcoords, indexing='ij')
     analytic = kernel(xg, yg, tg)
-    result_ds = simfunc(conc, diffusion, initial_condition)['concentration']
+    result_ds = simfunc(conc, diffusion, initial_condition, BC=BC)['concentration']
 
     ads = xr.DataArray(
         data=analytic,
@@ -132,6 +144,5 @@ def test_gaussian(simfunc):
             'initial_condition': initial_condition,
         },
     )
-    diff = (result_ds - ads)/ads
-    return diff
+    return result_ds, ads
 

@@ -7,7 +7,7 @@ import copy
 from .classes import Quantity1D, Quantity2D
 from .functions import set_initial_condition_2D
 from scipy.linalg import solve_banded
-from scipy.linalg.lapack import cgtsv 
+from scipy.linalg.lapack import cgtsv
 
 ## Matrix Functions
 
@@ -49,7 +49,7 @@ def generate_left_matrix_x(C, diffusion, y, BC): #TODO: Memoization tradeoff? Wi
     # Set boundary conditions
     if BC == 'neumann':
         u[1] = -2*r1(x_coords[0], y)
-        d[0] = - D2(x_coords[0], y)
+        d[0] = D2(x_coords[0], y)
         d[-1] = D2(x_coords[-1], y)
         l[-2] = -2*r1(x_coords[-1], y)
     elif BC == 'open':
@@ -57,6 +57,11 @@ def generate_left_matrix_x(C, diffusion, y, BC): #TODO: Memoization tradeoff? Wi
         d[0] = 1 + 2*r2(x_coords[0], y) 
         d[-1] = 1 - 2*r2(x_coords[-1], y)
         l[-2] = 2*r2(x_coords[-1], y)
+    elif BC == 'dirichlet':
+        u[1] = 0
+        d[0] = 1
+        d[-1] = 1
+        l[-2] = 0
     # Stack into a banded form
     ab = np.stack((u, d, l))
     return ab
@@ -100,7 +105,7 @@ def generate_left_matrix_y(C, diffusion, x, BC):
     # Set boundary conditions
     if BC == 'neumann':
         u[1] = -2*r1(x, y_coords[0])
-        d[0] = - D2(x, y_coords[0])
+        d[0] = D2(x, y_coords[0])
         d[-1] = D2(x, y_coords[-1])
         l[-2] = -2*r1(x, y_coords[-1])
     elif BC == 'open':
@@ -108,6 +113,11 @@ def generate_left_matrix_y(C, diffusion, x, BC):
         d[0] = 1 + 2*r2(x, y_coords[0])
         d[-1] = 1 - 2*r2(x, y_coords[-1])
         l[-2] = 2*r2(x, y_coords[-1])
+    elif BC == 'dirichlet':
+        u[1] = 0
+        d[0] = 1
+        d[-1] = 1
+        l[-2] = 0
     # Stack into a banded form
     ab = np.stack((u, d, l))
     return ab
@@ -149,8 +159,7 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         x = xcoords[i]
         matrix[i, i-1:i+2] = np.array([D1(x, y), D2(x, y), D3(x, y)])
 
-    # Set neumann boundary conditions; C1 - C0 = 0 by leaving 1st and last row empty
-    if BC == 'Neumann':
+    if BC == 'neumann':
         matrix[0, 0] = D2(xcoords[0], y)
         matrix[0, 1] = 2*r1(xcoords[0], y)
         matrix[-1, -2] = 2*r1(xcoords[-1], y)
@@ -162,11 +171,10 @@ def generate_right_matrix_x(C, diffusion, y, BC):
         matrix[-1, -2] = -2*r2(xcoords[-1], y)
         matrix[-1, -1] = 1 + 2*r2(xcoords[-1], y)
         return matrix
-
-    else:
-        matrix[0, 1:3] = np.array([-1, 1])
-        matrix[-1, -3:-1] = np.array([-1, 1])
+    elif BC == 'dirichlet':
         return matrix
+    else:
+        raise ValueError("Invalid Boundary Type")
 
 def generate_right_matrix_y(C, diffusion, x, BC): 
     """Generates the matrix B which operates on C_i in the matrix equation $A{C_i+1} = B{C_i} + d$
@@ -217,10 +225,10 @@ def generate_right_matrix_y(C, diffusion, x, BC):
         matrix[-1, -2] = -2*r2(x, ycoords[-1])
         matrix[-1, -1] = 1 + 2*r2(x, ycoords[-1])
         return matrix
-    else:
-        matrix[0, 1:3] = np.array([-1, 1])
-        matrix[-1, -3:-1] = np.array([-1, 1])
+    elif BC == 'dirichlet':
         return matrix
+    else:
+        raise ValueError("Invalid Boundary Type")
 
 def generate_explicit_comp_x(C, diffusion, j, BC):
     """Generates the vector d in the matrix equation $A{C_i+1} = B{C_i} + d$
@@ -251,6 +259,8 @@ def generate_explicit_comp_x(C, diffusion, j, BC):
             C_jp1 = C.now[:, j+1]
             C_j = C.now[:, j]
             return dt/(dy) * (grad_diff_vec * (C_jp1 - C_j) )
+        elif BC == 'dirichlet':
+            return 0
 
     elif j == (n_grid - 1):
         if BC == 'neumann':
@@ -261,6 +271,8 @@ def generate_explicit_comp_x(C, diffusion, j, BC):
             C_j = C.now[:, j]
             C_jm1 = C.now[:, j-1]
             return dt/(dy) * (grad_diff_vec * (C_j - C_jm1) )
+        elif BC == 'dirichlet':
+            return 0
 
     else:
         C_jp1 = C.now[:, j+1] 
@@ -301,6 +313,8 @@ def generate_explicit_comp_y(C, diffusion, i, BC):
             C_ip1 = C.now[i+1,:] 
             C_i = C.now[i,:]
             return dt/(dx) * (grad_diff_vec * (C_ip1 - C_i) )
+        elif BC == 'dirichlet':
+            return 0
 
     elif i == (n_grid - 1):
         if BC == 'neumann':
@@ -311,6 +325,8 @@ def generate_explicit_comp_y(C, diffusion, i, BC):
             C_i = C.now[i,:]
             C_im1 = C.now[i-1,:]
             return dt/(dx) * (grad_diff_vec * (C_i - C_im1) )
+        elif BC == 'dirichlet':
+            return 0
 
     else:
         C_ip1 = C.now[i+1,:] 
@@ -327,25 +343,44 @@ def ADI(
     C,
     diffusion,
     initial_condition,
-    BC = 'open',
+    sources = [],
+    BC = 'neumann',
 ):
     """Main routine for running 2D Crank-Nicholson with the alternating-direction implicit method.
 
     Args:
-        C (_type_): _description_
-        diffusion (_type_): _description_
-        initial_condition (_type_): _description_
+        C (Quantity2D): An empty Quantity2D object
+        diffusion (XYfunc): Can be either a Interpolated or Analytic child class representing the diffusion coefficient.
+        initial_condition (ndarray): A numpy ndarray containing an array of initial condition values with the same shape as C.now
+        sources (ndarray): A numpy ndarray representing a time-independent source function F(x, y) with the same shape as C.now
+        BC (string): Boundary conditions for the simulation. One of ('neumann', 'open'), with 'open' representing a zero second
+        derivative at the boundary, calculated using central difference and ghost points.
     """
     n_time = C.n_time
     n_grid = C.n_grid
     dx = C.dx
     dy = C.dy
+    dt = C.dt/2
     set_initial_condition_2D(C, initial_condition)
     xcoords = C.xcoords
     ycoords = C.ycoords
+    X, Y = np.meshgrid(xcoords, ycoords, indexing='ij')
+    if len(sources) == 0:
+        sources = np.zeros_like(X)
+    elif sources.size != X.size:
+        raise ValueError("Source array is not the same shape as domain!")
 
     # Generate matrices beforehand? Its alot of matrices to store...
-    # Maybe store in a dictionary? 
+    # Maybe store in a dictionary? Not sure if this is a major bottleneck
+
+    # Modify the initial condition to ensure that it respects the Dirichlet Boundary condition
+    # This is necessary due to how explicit components are calculated
+
+    if BC == 'dirichlet':
+        C.now[0, : ] = 0 
+        C.now[-1, : ] = 0
+        C.now[ : ,0] = 0
+        C.now[ : ,-1] = 0
 
     for timestep in range(1, n_time):
         # Perform x-direction implicit
@@ -356,7 +391,7 @@ def ADI(
             B = generate_right_matrix_x(C, diffusion, y, BC=BC)
             # Explicit component
             d = generate_explicit_comp_x(C, diffusion, j, BC=BC)
-            b = B@C_i + d
+            b = B@C_i + d + sources[:, j]*dt
             try:
                 C_next = solve_banded((1,1), ab, b)
             except ValueError as e:
@@ -365,6 +400,10 @@ def ADI(
                 print(d)
                 raise ValueError
             C.next[:, j] = C_next
+        # Deal with Dirichlet boundary conditions in the explicit edges
+        if BC == 'dirichlet':
+            C.next[:, 0] = 0*C.next[:, 0]
+            C.next[:, -1] = 0*C.next[:, -1]
         # Skip over saving the half-timestep results
         C.shift()
 
@@ -376,7 +415,7 @@ def ADI(
             B = generate_right_matrix_y(C, diffusion, x, BC=BC)
             # Explicit component
             d = generate_explicit_comp_y(C, diffusion, i, BC=BC)
-            b = B@C_j + d
+            b = B@C_j + d + sources[i, :]*dt
             try:
                 C_next = solve_banded((1,1), ab, b)
             except ValueError as e:
@@ -384,6 +423,10 @@ def ADI(
                 print(B)
                 print(d)
             C.next[i, :] = C_next
+        # Deal with Dirichlet boundary conditions in the explicit edges
+        if BC == 'dirichlet':
+            C.next[0, :] = 0*C.next[0, :]
+            C.next[-1, :] = 0*C.next[-1, :]
 
         C.store_timestep(timestep)
         C.shift()
@@ -393,6 +436,7 @@ def ADI(
         data_vars=dict(
             concentration=(['x', 'y', 't'], C.value),
             diffusion=(['x', 'y'], diffusion(X, Y)),
+            sources=(['x', 'y'], sources),
         ),
         coords={
             'x': C.xcoords,

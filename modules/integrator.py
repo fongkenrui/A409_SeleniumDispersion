@@ -4,7 +4,7 @@ import numpy as np
 from .functions import forward_euler, zero_dirichlet, set_initial_condition_2D
 
 
-def forward_euler_final(C, diffusion, initial_condition):
+def forward_euler_final(C, diffusion, initial_condition, sources=[], BC=None):
     """_summary_
     
     Args:
@@ -18,24 +18,32 @@ def forward_euler_final(C, diffusion, initial_condition):
     Returns:
         DataSet: xarray dataset containing simulation attributes and results
     """
+    if len(sources) == 0:
+        sources = np.zeros_like(initial_condition)
 
     set_initial_condition_2D(C, initial_condition)
+
+    # Enforce dirichlet BCs on the initial condition
+    C.now[0, : ] = 0 
+    C.now[-1, : ] = 0
+    C.now[ : ,0] = 0
+    C.now[ : ,-1] = 0
     
     for t in np.arange(1, C.n_time):
 
-        forward_euler(C, diffusion)
+        forward_euler(C, diffusion, sources)
         zero_dirichlet(C) #figure out the boundary condtions 
 
         C.store_timestep(t)
         C.shift()
     
-    X,Y = np.meshgrid(C.xcoords, C.ycoords, indexing = 'ij')
+    X, Y = np.meshgrid(C.xcoords, C.ycoords, indexing='ij')
     ds = xr.Dataset(
-        data_vars = dict(
-            concentration = (['x', 'y', 't'], C.value),
-            diffusion = (['x','y'], diffusion(X,Y)),
+        data_vars=dict(
+            concentration=(['x', 'y', 't'], C.value),
+            diffusion=(['x', 'y'], diffusion(X, Y)),
+            sources=(['x', 'y'], sources),
         ),
-        
         coords={
             'x': C.xcoords,
             'y': C.ycoords,
