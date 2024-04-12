@@ -1,9 +1,5 @@
 import numpy as np 
 
-"""Soil Geometries for two types of soil. a and b are soil types"""
-
-#triangular matrix 
-
 def triaingle_2(a,b):
     """Return a soil matrix of a triangle pattern"""
     
@@ -82,10 +78,11 @@ def square_3b(a,b,c):
 def circular_layers(a,b,c):
     """Return a soil matrix of a radiative pattern with three types of soils"""
     
-        matrix = np.array([[a,a,a,a,a,a],
-                        [a,a,b,b,a,a],
-                        [a,b,c,c,b,a],
-                        [a,b,c,c,b,a],
-                        [a,a,b,b,b,a],
-                        [a,a,a,a,a,a]])
-        return matrix
+    matrix = np.array([
+        [a,a,a,a,a,a],
+        [a,a,b,b,a,a],
+        [a,b,c,c,b,a],
+        [a,b,c,c,b,a],
+        [a,a,b,b,b,a],
+        [a,a,a,a,a,a]])
+    return matrix
