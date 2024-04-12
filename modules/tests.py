@@ -72,7 +72,7 @@ def integrate_sources(the_ds):
     time = the_ds.coords['t'].values
     return the_ds['sources'].sum(dim=('x', 'y')).values*(dy*dx) * time
 
-def plot_mass_conservation(the_ds):
+def plot_mass_conservation(the_ds, return_ds=True):
     """Plots total pollutant concentration
 
     Args:
@@ -89,10 +89,13 @@ def plot_mass_conservation(the_ds):
     ax.plot(time, inflow, label='cumulative inflow')
     ax.plot(time, conserved_mass, label='conserved mass')
     ax.set_xlabel("time")
-    ax.set_ylabel("fractional mass")
+    ax.set_ylabel("concentration")
     ax.legend()
     ax.set_title("Conserved Mass = Initial - Inflow + Outflow")
-    return fig, ax
+    if return_ds:
+        return cumflux, totalconc, inflow, conserved_mass
+    else:
+        return fig, ax
 
 def test_gaussian(simfunc, BC='neumann'):
     """Routine that runs the 2D CN-ADI simulation and checks the discrepancy against analytic solutions.
