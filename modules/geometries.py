@@ -1,4 +1,31 @@
 import numpy as np 
+from modules.classes import Interpolate
+
+def plot_soil_geometry(conc, pattern_func, args, D_background):
+    """Display soil geometry"""
+    n_grid_pt = 10
+
+    seed_matrix = pattern_func(*args)
+    
+    if seed_matrix.shape[0] != seed_matrix.shape[1]:
+        raise('A seed soil matrix must be a square matrix.')
+        
+    elif (seed_matrix.shape[0] != n_grid_pt) | (seed_matrix.shape[1] != n_grid_pt):
+        # if the seed matrix is smaller than a n_grid_pt-square matrix, adjust the size
+        
+        background_matrix = np.full((n_grid_pt, n_grid_pt), D_background)
+        idx = n_grid_pt // 2 - seed_matrix.shape[0] // 2
+        background_matrix[idx:-idx, idx:-idx] = seed_matrix
+        seed_matrix = background_matrix
+
+    xint = np.linspace(-0.5 * conc.n_grid * conc.dx, 0.5 * conc.n_grid * conc.dx, n_grid_pt)
+    yint = np.linspace(-0.5 * conc.n_grid * conc.dy, 0.5 * conc.n_grid * conc.dy, n_grid_pt)
+    diffusion = Interpolate(seed_matrix, xint, yint, s=0)
+    
+    fig, ax = diffusion.plot_color_map(func='func')
+    
+    return fig, ax
+
 
 def triangle_2(a,b):
     """Return a soil matrix of a triangle pattern"""
