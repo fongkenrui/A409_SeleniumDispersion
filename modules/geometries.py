@@ -3,14 +3,14 @@ from modules.classes import Interpolate
 
 def create_soil_geometry(conc, pattern_func, args, D_background):
     """Create soil geometry baased on a seed soil matrix"""
-    n_grid_pt = 10
-
+    
     seed_matrix = pattern_func(*args)
+    n_grid_pt = len(seed_matrix[0])
     
     if seed_matrix.shape[0] != seed_matrix.shape[1]:
         raise('A seed soil matrix must be a square matrix.')
         
-    elif (seed_matrix.shape[0] != n_grid_pt) | (seed_matrix.shape[1] != n_grid_pt):
+    elif seed_matrix.shape[1] != n_grid_pt:
         # if the seed matrix is smaller than a n_grid_pt-square matrix, adjust the size
         
         background_matrix = np.full((n_grid_pt, n_grid_pt), D_background)
@@ -92,12 +92,18 @@ def circular(a,b):
 def square_layers(a,b,c): 
     """Return a soil matrix of a squared layer pattern"""
     
-    matrix = np.array([[a,a,a,a,a,a],
-                    [a,b,b,b,b,a],
-                    [a,b,c,c,b,a],
-                    [a,b,c,c,b,a],
-                    [a,b,b,b,b,a],
-                    [a,a,a,a,a,a]])
+    matrix = np.array([
+        [a,a,a,a,a,a,a,a,a,a],
+        [a,a,a,a,a,a,a,a,a,a],
+        [a,a,a,a,a,a,a,a,a,a],
+        [a,a,a,b,b,b,b,a,a,a],
+        [a,a,a,b,c,c,b,a,a,a],
+        [a,a,a,b,c,c,b,a,a,a],
+        [a,a,a,b,b,b,b,a,a,a],
+        [a,a,a,a,a,a,a,a,a,a],
+        [a,a,a,a,a,a,a,a,a,a],
+        [a,a,a,a,a,a,a,a,a,a],
+    ])
     return matrix
 
 
