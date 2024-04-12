@@ -1,6 +1,6 @@
 import numpy as np 
 
-def triaingle_2(a,b):
+def triangle_2(a,b):
     """Return a soil matrix of a triangle pattern"""
     
     a = np.full((10, 10), 0.02)  
