@@ -10,7 +10,7 @@ def traingle_2(a,b):
     b = np.tril(a)
     matrix = a+b
     
-    print(matrix)
+    return matrix
 
 
 #Square matrices for two types of soil
@@ -20,21 +20,22 @@ def square_2a(a,b):
     
     diffarr = a*np.ones((10, 10))
     diffarr[:5,:5] = b # Vary along x; partial_x should be constant
-    print(diffarr)
+    
+    return diffarr
 
 #horizontal division 
 def square_2b(a,b):
     
     diffarr = a*np.ones((10, 10))
     diffarr[:5,:] = b # Vary along x; partial_x should be constant
-    print(diffarr)
+    return diffarr
 
 #vertical division 
 def square_2c(a,b):
     
     diffarr = a*np.ones((10, 10))
     diffarr[:,:5] = b # Vary along x; partial_x should be constant
-    print(diffarr)
+    return diffarr
     
     
 
@@ -50,10 +51,8 @@ def circular(a,b):
            [a,a,b,b,b,a,a],
            [a,a,a,a,a,a,a]])
     
-    print(arr)
+    return arr
 
-
-circular(2,0)
 
 
 'matrices for 3 soil types: a,b,c'
@@ -68,7 +67,8 @@ def square_layers(a,b,c):
                     [a,b,c,c,b,a],
                     [a,b,b,b,b,a],
                     [a,a,a,a,a,a]])
-    print(arr)
+    return arr
+
 
 def square_3a(a,b,c):
     
@@ -76,7 +76,7 @@ def square_3a(a,b,c):
     diffarr[:, 2:4] = b
     diffarr[:, 4:] = c
     
-    print(diffarr)
+    return diffarr
     
 
 
@@ -86,8 +86,8 @@ def square_3b(a,b,c):
     diffarr[2:4, :] = b
     diffarr[4:, :] = c
     
-    print(diffarr)
-    
+    return diffarr    
+
 
 def circular_layers(a,b,c):
     
@@ -97,6 +97,5 @@ def circular_layers(a,b,c):
                         [a,b,c,c,b,a],
                         [a,a,b,b,b,a],
                         [a,a,a,a,a,a]])
-        print(arr)
+        return arr
  
-circular_layers(1,2,3)
